@@ -151,19 +151,18 @@ if(has("#pv-ust")){const h=UST.y10;if(h){const n=h.length,v=h[n-1][1];$("#pv-ust
 if(has("#pv-mov")){const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>P[b].d1-P[a].d1),pick=[...ts.slice(0,3),...ts.slice(-3)];$("#pv-mov").innerHTML=pick.map(t=>`<div class="mv"><a href="portfolio.html#${t}"><b>${t}</b></a><span class="num">$${fmt(P[t].price)} &nbsp;${fp(P[t].d1)}</span></div>`).join("")}
 if(has("#pv-earn"))$("#pv-earn").innerHTML=EARN.slice(0,3).map(c=>`<div class="mv"><span><b>${esc(c.t||c.title)}</b> <span class="cap">${esc(c.time||"")}</span></span><span class="num" style="color:var(--blue);font-weight:600">${md(c.date)}</span></div>`).join("")||'<div class="empty">No earnings in the next 14 days.</div>';
 if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it" style="margin-bottom:12px"><div class="h">${esc(b.headline)}</div><div class="m"><a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a></div></div>`).join("");
-/* header nav: hover (CSS) + click + keyboard; mobile drawer */
-(function(){const dds=[...document.querySelectorAll(".dd")],close=x=>dds.forEach(d=>{if(d!==x){d.classList.remove("open");d.querySelector(".ddb").setAttribute("aria-expanded","false")}});
- dds.forEach(d=>{const b=d.querySelector(".ddb"),links=[...d.querySelectorAll(".ddm a")];
-  b.onclick=e=>{e.stopPropagation();const o=!d.classList.contains("open");if(innerWidth>900)close(d);d.classList.toggle("open",o);b.setAttribute("aria-expanded",o)};
-  b.onkeydown=e=>{if(e.key=="ArrowDown"){e.preventDefault();e.stopPropagation();close(d);d.classList.add("open");b.setAttribute("aria-expanded","true");links[0].focus()}};
-  d.onkeydown=e=>{const i=links.indexOf(document.activeElement);if(e.key=="Escape"){d.classList.remove("open");b.setAttribute("aria-expanded","false");b.focus()}
-   else if(i>=0&&(e.key=="ArrowDown"||e.key=="ArrowUp")){e.preventDefault();links[(i+(e.key=="ArrowDown"?1:links.length-1))%links.length].focus()}};
-  d.addEventListener("focusout",e=>{if(!d.contains(e.relatedTarget)&&innerWidth>900){d.classList.remove("open");b.setAttribute("aria-expanded","false")}})});
- document.addEventListener("click",e=>{if(innerWidth>900&&!e.target.closest(".dd"))close()});
- const hb=$(".hamb");hb.onclick=()=>{const o=!document.body.classList.contains("drawer");document.body.classList.toggle("drawer",o);hb.setAttribute("aria-expanded",o);if(o){const a=$(".dd.on");if(a){a.classList.add("open");a.querySelector(".ddb").setAttribute("aria-expanded","true")}}};
- document.querySelectorAll(".mnav a").forEach(a=>a.addEventListener("click",()=>{document.body.classList.remove("drawer");hb.setAttribute("aria-expanded","false");close()}));
- addEventListener("resize",()=>{if(innerWidth>900)document.body.classList.remove("drawer")});
- document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"));if(t){e.preventDefault();t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}))})();
+/* sidebar nav: expandable tabs, scroll-spy, mobile drawer */
+(function(){document.querySelectorAll(".tab").forEach(tb=>{const x=tb.querySelector(".tx");x.onclick=()=>{const o=!tb.classList.contains("open");tb.classList.toggle("open",o);x.setAttribute("aria-expanded",o)}});
+ const hb=$(".hamb"),setD=o=>{document.body.classList.toggle("drawer",o);hb.setAttribute("aria-expanded",o)};hb.onclick=()=>setD(!document.body.classList.contains("drawer"));
+ $(".scrim").onclick=()=>setD(false);document.addEventListener("keydown",e=>{if(e.key=="Escape")setD(false)});addEventListener("resize",()=>{if(innerWidth>900)setD(false)});
+ document.querySelectorAll(".sb a").forEach(a=>a.addEventListener("click",()=>setD(false)));
+ document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"))||$("#s-sub2");if(t){e.preventDefault();setD(false);t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}));
+ const L=[...document.querySelectorAll(".tab.on .secs a")],T=L.map(a=>document.getElementById(a.dataset.sec)).filter(Boolean);if(!T.length)return;
+ const set=id=>L.forEach(a=>a.classList.toggle("on",a.dataset.sec==id));
+ const spy=()=>{let best=T[0].id,bt=-1e9;T.forEach(t=>{const y=t.getBoundingClientRect().top;if(y<=140&&y>bt+1){best=t.id;bt=y}});if(innerHeight+scrollY>=document.documentElement.scrollHeight-4)best=T[T.length-1].id;set(best)};
+ const io=new IntersectionObserver(spy,{rootMargin:"-120px 0px -50% 0px",threshold:[0,1]});T.forEach(t=>io.observe(t));addEventListener("scroll",spy,{passive:true});spy()})();
+/* old overview anchors moved to markets.html */
+if(has("#wl")&&["#s-top","#s-snap","#ustc","#hist","#usttiles","#s-sub"].includes(location.hash)&&location.hash!="#s-sub")location.replace("markets.html"+location.hash);
 /* ticker deep link: portfolio.html#NVDA */
 if(has("#wl")){const hk=decodeURIComponent(location.hash.slice(1)).toUpperCase();const dl=D.tickers.includes(hk);renderWL();if(dl)select(hk);if(dl)setTimeout(()=>$("#detail").scrollIntoView({block:"start"}),50)}
 if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel&&!dLive)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
