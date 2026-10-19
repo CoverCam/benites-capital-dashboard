@@ -1,6 +1,6 @@
 const D=window.BC_DATA,has=s=>!!document.querySelector(s);
 const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const NAVY="#2962FF",INK="#111111",MUTE="#6B7178",LINE="#E5E8EC",PAL=["#2962FF","#6B7178","#2A9D8F","#C0392B","#7B4FB0","#D4A017","#3B82C4","#8E5B3A","#5E6B78","#E05FA0","#4CAF50","#111111","#00A6C7"];
+const NAVY="#1F4E9C",INK="#111111",MUTE="#111111",LINE="#E5E8EC",PAL=["#E5E8EC"];
 const pc=(a,b)=>b?((a/b)-1)*100:null;
 const fmt=(v,d=2)=>v==null?"n/a":v.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
 const fp=(v,d=2)=>v==null?'<span class="cap">n/a</span>':`<span class="${v>=0?"up":"dn"}">${v>=0?"+":""}${fmt(v,d)}%</span>`;
@@ -10,8 +10,8 @@ function back(h,days){const end=new Date(h[h.length-1][0]);const st=new Date(end
 function since(h,range){if(range==="YTD"){const y=h[h.length-1][0].slice(0,4);let i=h.findIndex(p=>p[0]>=y+"-01-01");return Math.max(0,i-1)}return back(h,{"1M":30,"3M":91,"6M":182,"1Y":365}[range])}
 function perf(t){const h=D.hist[t];if(!h)return{};const n=h.length,c=h[n-1][1];return{price:c,d1:pc(c,h[n-2]?.[1]),d5:pc(c,h[n-6]?.[1]),m1:pc(c,h[since(h,"1M")][1]),ytd:pc(c,h[since(h,"YTD")][1])}}
 /* svg helpers */
-function line(pts,W,H,P,lo,hi,color,w=2){if(pts.length<2)return"";const sx=i=>P.l+i*(W-P.l-P.r)/(pts.length-1),sy=v=>P.t+(hi-v)/(hi-lo||1)*(H-P.t-P.b);
- return`<path d="${pts.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join("")}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`}
+function line(pts,W,H,P,lo,hi,color,w=2,dash=""){if(pts.length<2)return"";const sx=i=>P.l+i*(W-P.l-P.r)/(pts.length-1),sy=v=>P.t+(hi-v)/(hi-lo||1)*(H-P.t-P.b);
+ return`<path d="${pts.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join("")}" fill="none" stroke="${color}" stroke-width="${w}"${dash?` stroke-dasharray="${dash}"`:""} stroke-linejoin="round" stroke-linecap="round"/>`}
 function ticks(lo,hi,n=5){const s=(hi-lo)/n,m=Math.pow(10,Math.floor(Math.log10(s||1))),st=[1,2,2.5,5,10].map(x=>x*m).find(x=>x>=s)||s;const out=[];for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st)out.push(+v.toFixed(6));return out}
 function spark(h){const p=h.slice(-30).map(x=>x[1]),lo=Math.min(...p),hi=Math.max(...p),up=p[p.length-1]>=p[0];
  return`<svg viewBox="0 0 80 28" width="80" height="28">${line(p,80,28,{l:1,r:1,t:2,b:2},lo,hi,up?NAVY:INK,1.5)}</svg>`}
@@ -20,11 +20,11 @@ function axisChart(series,opt){/* series:[{pts,color,w,label}] dates:[] */
  const W=opt.W||760,H=opt.H||300,P={l:8,r:56,t:12,b:28};let all=series.flatMap(s=>s.pts).filter(v=>v!=null);(opt.extra||[]).forEach(v=>all.push(v));
  let lo=Math.min(...all),hi=Math.max(...all);const pad=(hi-lo)*.06||1;lo-=pad;hi+=pad;const T=ticks(lo,hi,opt.zero?7:5),sy=v=>P.t+(hi-v)/(hi-lo)*(H-P.t-P.b);
  let g=T.map(v=>`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(v)}" y2="${sy(v)}" stroke="${LINE}"/><text x="${W-P.r+8}" y="${sy(v)+4}" font-size="12" fill="${MUTE}" class="num">${opt.yf(v)}</text>`).join("");
- if(opt.zero&&lo<0&&hi>0)g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(0)}" y2="${sy(0)}" stroke="${MUTE}" stroke-opacity=".6"/>`;
+ if(opt.zero&&lo<0&&hi>0)g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(0)}" y2="${sy(0)}" stroke="${MUTE}"/>`;
  const d=opt.dates,n=d.length,sx=i=>P.l+i*(W-P.l-P.r)/(n-1);[0,Math.round((n-1)/3),Math.round(2*(n-1)/3),n-1].forEach((i,k)=>{g+=`<text x="${sx(i)}" y="${H-8}" font-size="12" fill="${MUTE}" text-anchor="${k==0?"start":k==3?"end":"middle"}">${md(d[i])}</text>`});
- (opt.hlines||[]).forEach(h=>{g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(h.v)}" y2="${sy(h.v)}" stroke="${h.color}" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${P.l+4}" y="${sy(h.v)-6}" font-size="12" font-weight="600" fill="${h.color}">${esc(h.label)}</text>`});
- if(opt.area){const s=series[0];g+=`<path d="${s.pts.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join("")}L${sx(n-1)} ${H-P.b}L${sx(0)} ${H-P.b}Z" fill="${NAVY}" opacity=".07"/>`}
- g+=series.map(s=>line(s.pts,W,H,P,lo,hi,s.color,s.w||2)).join("");
+ (opt.hlines||[]).forEach(h=>{g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(h.v)}" y2="${sy(h.v)}" stroke="${h.color}" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${P.l+4}" y="${sy(h.v)-6}" font-size="12" font-weight="600" fill="${INK}">${esc(h.label)}</text>`});
+ if(opt.area){const s=series[0];g+=``}
+ g+=series.map(s=>line(s.pts,W,H,P,lo,hi,s.color,s.w||2,s.dash||"")).join("");
  const ends=series.filter(s=>s.label).map(s=>({y:sy(s.pts[s.pts.length-1]),s}));
  g+=ends.map(e=>`<circle cx="${sx(n-1)}" cy="${e.y}" r="3.5" fill="${e.s.color}"/>`).join("");
  const id="c"+(++chN);CH[id]={W,H,P,sx,sy,n,dates:d,series,tip:opt.tip};
@@ -33,7 +33,7 @@ function axisChart(series,opt){/* series:[{pts,color,w,label}] dates:[] */
 function hvHide(svg){if(!svg)return;const g=svg.querySelector(".hv");if(g)g.style.display="none";const t=svg.parentNode.querySelector(".tip");if(t)t.style.display="none"}
 function hvMove(svg,cx){const c=CH[svg.dataset.cid];if(!c||c.n<2)return;const r=svg.getBoundingClientRect(),k=r.width/c.W,vx=(cx-r.left)/k;
  const i=Math.max(0,Math.min(c.n-1,Math.round((vx-c.P.l)/(c.W-c.P.l-c.P.r)*(c.n-1)))),x=c.sx(i);
- const g=svg.querySelector(".hv");g.style.display="";g.innerHTML=`<line x1="${x}" x2="${x}" y1="${c.P.t}" y2="${c.H-c.P.b}" stroke="#2962FF" stroke-opacity=".55" stroke-dasharray="3 3"/>`+c.series.filter(s=>s.pts[i]!=null).map(s=>`<circle cx="${x}" cy="${c.sy(s.pts[i])}" r="4.5" fill="${s.color}" stroke="#fff" stroke-width="2"/>`).join("");
+ const g=svg.querySelector(".hv");g.style.display="";g.innerHTML=`<line x1="${x}" x2="${x}" y1="${c.P.t}" y2="${c.H-c.P.b}" stroke="#1F4E9C" stroke-dasharray="3 3"/>`+c.series.filter(s=>s.pts[i]!=null).map(s=>`<circle cx="${x}" cy="${c.sy(s.pts[i])}" r="4.5" fill="${s.color}" stroke="#FFFFFF" stroke-width="2"/>`).join("");
  const box=svg.parentNode;let t=box.querySelector(".tip");if(!t){t=document.createElement("div");t.className="tip";box.appendChild(t)}
  t.innerHTML=`<div class="td">${wd(c.dates[i])}</div>`+(c.tip?c.tip(i,c.series):"");t.style.display="block";
  const px=x*k+(r.left-box.getBoundingClientRect().left),tw=t.offsetWidth,bw=box.clientWidth;let L=px+12;if(L+tw>bw)L=px-12-tw;t.style.left=Math.max(0,L)+"px";t.style.top="4px"}
@@ -64,7 +64,7 @@ function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dR
  $("#detail").innerHTML=`<div class="dh"><span class="t">${t}</span><span class="cap" style="font-size:15px">${esc(x.name)}</span><span class="p num">$${fmt(p.price)}</span><span class="chg num">${fp(p.d1)}</span></div>
  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 8px;flex-wrap:wrap"><span style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg" id="dlv"><button class="${dLive?"":"on"}">History</button><button class="${dLive?"on":""}">Live</button></span><span class="seg" id="dr" style="${dLive?"display:none":""}">${["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==dRange?"on":""}">${r}</button>`).join("")}</span></span><span class="cap num" style="${dLive?"display:none":""}">${dRange}: ${fp(rng)}</span></div>
  ${dLive?`<div class="tvw" id="dtv"></div><div class="cap" style="margin-top:8px">Live chart for ${TV[t]} by TradingView.</div>`:""}
- <div style="${dLive?"display:none":""}"><div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:"#6B7178",label:"Avg target $"+fmt(x.target)}]:[]})}</div>
+ <div style="${dLive?"display:none":""}"><div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:LINE,label:"Avg target $"+fmt(x.target)}]:[]})}</div>
 ${asofNote()}</div>
  <div class="stats"><div><div class="k">Analysts</div><div class="v">${rp}</div>${x.n?`<div class="cap">${x.n} analysts</div>`:""}</div>
  <div><div class="k">Avg target</div><div class="v num">${x.target?"$"+fmt(x.target):"n/a"}</div>${x.low?`<div class="cap num">Range $${fmt(x.low,0)} to $${fmt(x.high,0)}</div>`:""}</div>
@@ -87,7 +87,7 @@ if(has("#macrocal")){if(MAC.length)$("#macrocal tbody").innerHTML=MAC.map(calRow
 if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`).join(""):'<tr><td class="empty">Nothing scheduled.</td></tr>';
 if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p style="margin:${has("#macrocal")?16:0}px 0 0"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
 /* comparison */
-let cRange="3M";const on=new Set(["SPY","WL"]);const HOLD=D.tickers.filter(t=>t!="SPY"&&D.hist[t]);let wlNote="";const keys=["WL",...D.tickers.filter(t=>D.hist[t])];const col=k=>k=="WL"?NAVY:k=="SPY"?INK:PAL[(D.tickers.indexOf(k)%12)+1];
+let cRange="3M";const on=new Set(["SPY","WL"]);const HOLD=D.tickers.filter(t=>t!="SPY"&&D.hist[t]);let wlNote="";const keys=["WL",...D.tickers.filter(t=>D.hist[t])];const col=k=>k=="WL"?NAVY:k=="SPY"?INK:LINE;const DASH=["","6 4","2 3","8 3 2 3"];const dsh=k=>k=="WL"||k=="SPY"?"":DASH[D.tickers.indexOf(k)%4];
 function cmp(){const sh=D.hist.SPY,i0=since(sh,cRange),dates=sh.slice(i0).map(z=>z[0]);
  const ser=k=>{if(k=="WL"){/* equal-weight buy-and-hold from range start: mean of each holding's cumulative price return; holdings not trading at the range start are left out for that range */
   const all=HOLD.map(t=>[t,ser(t)]),inn=all.filter(([t,a])=>a[0]!=null),out=all.filter(([t,a])=>a[0]==null).map(([t])=>t);
@@ -96,8 +96,8 @@ function cmp(){const sh=D.hist.SPY,i0=since(sh,cRange),dates=sh.slice(i0).map(z=
   const m=new Map(D.hist[k].map(z=>[z[0],z[1]]));let last=null;const raw=dates.map(d=>{if(m.has(d))last=m.get(d);return last});const b=raw.find(v=>v!=null);return raw.map(v=>v==null?null:(v/b-1)*100)};
  $("#chips").innerHTML=`<div class="chiprow">${["WL","SPY"].map(k=>`<button class="chip ${on.has(k)?"on":""}" data-k="${k}"><i style="background:${on.has(k)?col(k):LINE}"></i>${k=="WL"?"Benites Capital portfolio (equal-weight)":"SPY (S&P 500 benchmark)"}</button>`).join("")}</div><div class="chiprow"><span class="chl">Holdings</span>${HOLD.map(k=>`<button class="chip ${on.has(k)?"on":""}" data-k="${k}"><i style="background:${on.has(k)?col(k):LINE}"></i>${k}</button>`).join("")}</div>`;
  $("#chips").querySelectorAll(".chip").forEach(c=>c.onclick=()=>{const k=c.dataset.k;on.has(k)?on.delete(k):on.add(k);cmp()});
- const wlS=ser("WL");if(has("#cmpnote"))$("#cmpnote").textContent=wlNote;const S=keys.filter(k=>on.has(k)).map(k=>({pts:k=="WL"?wlS:ser(k),color:col(k),w:k=="WL"?3:k=="SPY"?2.5:1.75,label:k}));
- $("#cmp").innerHTML=S.length?axisChart(S,{W:Math.max(300,$("#cmp").clientWidth||1200),H:innerWidth<640?260:340,dates,yf:v=>(v>0?"+":"")+fmt(v,0)+"%",zero:1,tip:(i,S)=>S.filter(s=>s.pts[i]!=null).slice().sort((a,b)=>b.pts[i]-a.pts[i]).map(s=>`<div class="tr"><b style="color:${s.color}">${s.label=="WL"?"Portfolio":s.label}</b><span class="num">${fp(s.pts[i],1)}</span></div>`).join("")})+`<div class="chips" style="margin:12px 0 0">${S.map(s=>{const v=s.pts[s.pts.length-1];return`<span class="cap num"><b style="color:${s.color}">${s.label=="WL"?"Portfolio":s.label}</b> ${fp(v,1)}${s.pts[0]==null?` <span class="cap">since ${md(dates[s.pts.findIndex(x=>x!=null)])} listing</span>`:""}</span>`}).join("")}</div>`:'<div class="empty">Select at least one line.</div>';
+ const wlS=ser("WL");if(has("#cmpnote"))$("#cmpnote").textContent=wlNote;const S=keys.filter(k=>on.has(k)).map(k=>({pts:k=="WL"?wlS:ser(k),color:col(k),dash:dsh(k),w:k=="WL"?3:k=="SPY"?2.5:1.75,label:k}));
+ $("#cmp").innerHTML=S.length?axisChart(S,{W:Math.max(300,$("#cmp").clientWidth||1200),H:innerWidth<640?260:340,dates,yf:v=>(v>0?"+":"")+fmt(v,0)+"%",zero:1,tip:(i,S)=>S.filter(s=>s.pts[i]!=null).slice().sort((a,b)=>b.pts[i]-a.pts[i]).map(s=>`<div class="tr"><b style="color:${s.color==LINE?INK:s.color}">${s.label=="WL"?"Portfolio":s.label}</b><span class="num">${fp(s.pts[i],1)}</span></div>`).join("")})+`<div class="chips" style="margin:12px 0 0">${S.map(s=>{const v=s.pts[s.pts.length-1];return`<span class="cap num"><b style="color:${s.color==LINE?INK:s.color}">${s.label=="WL"?"Portfolio":s.label}</b> ${fp(v,1)}${s.pts[0]==null?` <span class="cap">since ${md(dates[s.pts.findIndex(x=>x!=null)])} listing</span>`:""}</span>`}).join("")}</div>`:'<div class="empty">Select at least one line.</div>';
  $("#cmpr").innerHTML=["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==cRange?"on":""}">${r}</button>`).join("");$("#cmpr").querySelectorAll("button").forEach(b=>b.onclick=()=>{cRange=b.textContent;cmp()})}
 if(has("#big"))$("#big").innerHTML=D.big.map(b=>`<div class="it"><div class="h">${esc(b.headline)}</div><div class="b">${esc(b.why)}</div><div class="m"><a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a></div></div>`).join("");
 /* treasuries */
@@ -118,7 +118,7 @@ const TV={AXP:"NYSE:AXP",HHH:"NYSE:HHH",INTC:"NASDAQ:INTC",JPM:"NYSE:JPM",LMT:"N
 const TVNOTE={"^VIX":"Live chart is Capital.com's VIX CFD, which tracks VIX futures and can differ from the spot index in History.","DX-Y.NYB":"Live chart is Capital.com's US Dollar Index CFD; it can differ slightly from ICE's index in History.","BZ=F":"Live chart is TradingView's Brent CFD (UKOIL); History uses the front-month Brent future.","GC=F":"Live chart is spot gold (TVC:GOLD); History uses the front-month gold future."};
 function tvEmbed(w,symbol,o={}){w.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div></div>';
  const sc=document.createElement("script");sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";sc.async=true;
- sc.text=JSON.stringify(Object.assign({autosize:true,symbol,interval:"D",range:"3M",timezone:"America/New_York",theme:"light",style:"3",locale:"en",allow_symbol_change:false,hide_side_toolbar:true,hide_volume:true,save_image:false,calendar:false,backgroundColor:"#ffffff",gridColor:"rgba(229,232,236,1)",support_host:"https://www.tradingview.com"},o));
+ sc.text=JSON.stringify(Object.assign({autosize:true,symbol,interval:"D",range:"3M",timezone:"America/New_York",theme:"light",style:"3",locale:"en",allow_symbol_change:false,hide_side_toolbar:true,hide_volume:true,save_image:false,calendar:false,backgroundColor:"#FFFFFF",gridColor:"#E5E8EC",lineColor:"#1F4E9C",topColor:"#1F4E9C",bottomColor:"#FFFFFF",overrides:{"mainSeriesProperties.areaStyle.color1":"#1F4E9C","mainSeriesProperties.areaStyle.color2":"#FFFFFF","mainSeriesProperties.areaStyle.linecolor":"#1F4E9C"},support_host:"https://www.tradingview.com"},o));
  w.firstChild.appendChild(sc)}
 let tvDone=false;function loadTV(){if(tvDone)return;tvDone=true;tvEmbed($("#tvw"),"US10Y",{interval:"5",range:"1D"})}
 const asofNote=()=>`<div class="cap" style="margin-top:8px">History data as of ${md(D.lastbar)} close (Yahoo Finance).</div>`;
@@ -145,6 +145,8 @@ function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML=
  $("#snx").onclick=()=>{snSym=null;renderSnap()};if(snLive)tvEmbed($("#sntv"),TV[snSym])}
 if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]&&snSym!="^TNX"}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
 document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
+/* old anchors on news.html */
+if(has("#s-earn")&&["#s-cal","#s-up","#s-feed"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"?"#s-big":"#s-earn").scrollIntoView(),50);
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
 if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2" style="margin:0 0 8px"><a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news in today\'s digest.</div>';
@@ -154,18 +156,29 @@ if(has("#pv-ust")){const h=UST.y10;if(h){const n=h.length,v=h[n-1][1];$("#pv-ust
 if(has("#pv-mov")){const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>P[b].d1-P[a].d1),pick=[...ts.slice(0,3),...ts.slice(-3)];$("#pv-mov").innerHTML=pick.map(t=>`<div class="mv"><a href="portfolio.html#${t}"><b>${t}</b></a><span class="num">$${fmt(P[t].price)} &nbsp;${fp(P[t].d1)}</span></div>`).join("")}
 if(has("#pv-earn"))$("#pv-earn").innerHTML=EARN.slice(0,3).map(c=>`<div class="mv"><span><b>${esc(c.t||c.title)}</b> <span class="cap">${esc(c.time||"")}</span></span><span class="num" style="color:var(--blue);font-weight:600">${md(c.date)}</span></div>`).join("")||'<div class="empty">No earnings in the next 14 days.</div>';
 if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it" style="margin-bottom:12px"><div class="h">${esc(b.headline)}</div><div class="m"><a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a></div></div>`).join("");
-/* sidebar nav: expandable tabs, scroll-spy, mobile drawer */
-(function(){document.querySelectorAll(".tab").forEach(tb=>{const x=tb.querySelector(".tx");x.onclick=()=>{const o=!tb.classList.contains("open");tb.classList.toggle("open",o);x.setAttribute("aria-expanded",o)}});
- const hb=$(".hamb"),setD=o=>{document.body.classList.toggle("drawer",o);hb.setAttribute("aria-expanded",o)};hb.onclick=()=>setD(!document.body.classList.contains("drawer"));
+/* sidebar nav: mobile drawer */
+(function(){const hb=$(".hamb"),setD=o=>{document.body.classList.toggle("drawer",o);hb.setAttribute("aria-expanded",o)};hb.onclick=()=>setD(!document.body.classList.contains("drawer"));
  $(".scrim").onclick=()=>setD(false);document.addEventListener("keydown",e=>{if(e.key=="Escape")setD(false)});addEventListener("resize",()=>{if(innerWidth>900)setD(false)});
  document.querySelectorAll(".sb a").forEach(a=>a.addEventListener("click",()=>setD(false)));
- document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"))||$("#s-sub2");if(t){e.preventDefault();setD(false);t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}));
- const L=[...document.querySelectorAll(".tab.on .secs a")],T=L.map(a=>document.getElementById(a.dataset.sec)).filter(Boolean);if(!T.length)return;
- const set=id=>L.forEach(a=>a.classList.toggle("on",a.dataset.sec==id));
- const spy=()=>{let best=T[0].id,bt=-1e9;T.forEach(t=>{const y=t.getBoundingClientRect().top;if(y<=140&&y>bt+1){best=t.id;bt=y}});if(innerHeight+scrollY>=document.documentElement.scrollHeight-4)best=T[T.length-1].id;set(best)};
- const io=new IntersectionObserver(spy,{rootMargin:"-120px 0px -50% 0px",threshold:[0,1]});T.forEach(t=>io.observe(t));addEventListener("scroll",spy,{passive:true});spy()})();
+ document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"))||$("#s-sub2");if(t){e.preventDefault();setD(false);t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}))})();
+/* page summary card: bullets generated from data only */
+(function(){if(!has("#sumt"))return;const pgn=document.body.dataset.page,S=$("#sums"),pct=v=>(v>=0?"+":"")+fmt(v,2)+"%";let L=[];
+ const sents=t=>String(t||"").split(/(?<=[.!?])\s+(?=[A-Z"\u201C])/).map(x=>esc(x.trim())).filter(Boolean);
+ if(pgn=="markets"){L=Array.isArray(D.topline_points)&&D.topline_points.length?D.topline_points.map(esc):sents(D.topline);S.textContent="From today's digest: "+D.news_date}
+ else if(pgn=="index"){const hs=D.tickers.filter(t=>t!="SPY"&&P[t]&&P[t].d1!=null),wl=hs.reduce((a,t)=>a+P[t].d1,0)/hs.length,sp=P.SPY?.d1,srt=hs.slice().sort((a,b)=>P[b].d1-P[a].d1),hi=srt[0],lo=srt[srt.length-1];
+  L=[`Portfolio <b>${pct(wl)}</b> today${sp==null?"":`, ${wl>=sp?"ahead of":"behind"} SPY at ${pct(sp)}`}.`,`Top mover: <b>${hi}</b> ${pct(P[hi].d1)} (${esc(D.tick[hi].name)}).`,`Bottom mover: <b>${lo}</b> ${pct(P[lo].d1)} (${esc(D.tick[lo].name)}).`];
+  S.textContent=`Equal-weight, ${hs.length} holdings vs their prior close, latest bar ${md(D.lastbar)}. Prices via Yahoo Finance.`}
+ else if(pgn=="calendar"){const now=D.lastbar,lim=new Date(now+"T12:00:00");lim.setDate(lim.getDate()+7);const k=lim.toISOString().slice(0,10);let ev=D.cal.filter(c=>c.date>=now&&c.date<=k);if(!ev.length)ev=D.cal.slice(0,3);
+  L=ev.slice(0,3).map(c=>`<b>${wd(c.date)}</b>: ${esc(c.kind=="Earnings"?(c.t||c.title)+" earnings":c.title)}${c.time?" ("+esc(c.time.toLowerCase())+")":""}.`);
+  if(D.macro_note)L.push("Macro: "+esc(D.macro_note));if(!L.length)L=["Nothing scheduled in the next 14 days."];S.textContent="Earnings dates via Yahoo Finance; macro from today's digest."}
+ else if(pgn=="news"){const b=D.big[0],ev=D.cal.find(c=>c.date>=D.lastbar),ld=D.leaders[0];
+  if(b)L.push(`Top story: <b>${esc(b.headline)}.</b> ${esc(b.why)}`);
+  if(ev)L.push(`Next event: <b>${wd(ev.date)}</b>, ${esc(ev.kind=="Earnings"?(ev.t||ev.title)+" earnings":ev.title)}${ev.time?" ("+esc(ev.time.toLowerCase())+")":""}.`);
+  const b2=D.big[1];if(b2)L.push(`Also: <b>${esc(b2.headline)}.</b>`);else if(ld)L.push(`${esc(ld.name)}: ${esc(ld.text)}`);
+  S.innerHTML=(b?`<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a> · `:"")+"from today's digest; dates via Yahoo Finance"}
+ $("#sumt").outerHTML=`<ul class="bul" id="sumt">${L.slice(0,4).map(x=>`<li>${x}</li>`).join("")}</ul>`})();
 /* old overview anchors moved to markets.html */
-if(has("#wl")&&["#s-top","#s-snap","#ustc","#hist","#usttiles","#s-sub"].includes(location.hash)&&location.hash!="#s-sub")location.replace("markets.html"+location.hash);
+if(has("#wl")&&["#s-snap","#ustc","#hist","#usttiles","#s-sub"].includes(location.hash)&&location.hash!="#s-sub")location.replace("markets.html"+location.hash);
 /* ticker deep link: portfolio.html#NVDA */
 if(has("#wl")){const hk=decodeURIComponent(location.hash.slice(1)).toUpperCase();const dl=D.tickers.includes(hk);renderWL();if(dl)select(hk);if(dl)setTimeout(()=>$("#detail").scrollIntoView({block:"start"}),50)}
 if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel&&!dLive)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
