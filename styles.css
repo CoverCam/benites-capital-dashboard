@@ -121,3 +121,13 @@ section.card{scroll-margin-top:88px}
  .dd{border-bottom:1px solid var(--line)}.ddb{width:100%;justify-content:space-between;padding:16px 4px;font-size:16px;border-radius:0}.ddb:hover,.dd.open .ddb{background:none}
  .dd.on .ddb:after{display:none}.ddm{position:static;box-shadow:none;border:0;padding:0 0 12px;min-width:0}.ddm:before{display:none}.ddm a{font-size:15px;padding:10px 12px}}
 @media(max-width:640px){.pv{grid-template-columns:1fr}.hd{gap:12px}.logo{font-size:16px}.ph h1{font-size:24px}}
+
+/* snapshot tiles as buttons + chart panel */
+.sct{font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%;transition:border-color .15s,box-shadow .15s}
+.sct:hover{border-color:var(--line2)}.sct.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.sct .lv{float:right;font-size:11px;font-weight:600;color:var(--blue);opacity:0;transition:opacity .15s}.sct:hover .lv,.sct.on .lv,.sct:focus-visible .lv{opacity:1}
+@media(hover:none){.sct .lv{opacity:1}}
+.snp{margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+.x{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:8px;width:32px;height:32px;font-size:20px;line-height:1;cursor:pointer;color:var(--body)}.x:hover{background:var(--bg)}
+.tradingview-widget-copyright{font-size:12px;line-height:32px;text-align:center}
+.tvw{height:472px}@media(max-width:640px){.tvw{height:372px}}

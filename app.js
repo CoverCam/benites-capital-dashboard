@@ -46,7 +46,7 @@ document.addEventListener("pointerup",e=>{if(e.pointerType!="mouse"){const svg=e
 if(has("#asof"))$("#asof").textContent="Data as of "+D.asof+" · latest daily bar "+md(D.lastbar);if(has("#topline")){$("#topline").textContent=D.topline;$("#newsdate").textContent="From today's digest: "+D.news_date}
 if(has("#snap"))$("#snap").innerHTML=D.snap.map(s=>{const h=D.hist[s.sym];if(!h)return"";const n=h.length,v=h[n-1][1],ch=s.sym==="^TNX"?(v-h[n-2][1])*100:pc(v,h[n-2][1]);
  const cs=s.sym==="^TNX"?`<span class="chg ${ch>=0?"up":"dn"} num">${ch>=0?"+":""}${ch.toFixed(0)} bp</span>`:`<span class="chg num">${fp(ch)}</span>`;
- return`<div class="sc"><div class="n">${esc(s.name)}</div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></div>`}).join("");
+ return`<button class="sc sct" data-sym="${esc(s.sym)}" aria-controls="snp" title="Open chart"><div class="n">${esc(s.name)}<span class="lv">Chart ›</span></div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></button>`}).join("");
 const COLS=[["t","Ticker"],["price","Price"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"]];
 let sortK="d1",sortD=-1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,perf(t)]));
 function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>`<th data-k="${k}" class="${k==sortK?"on":""} ${i>=4?"hide-m":""}">${l}${k==sortK?`<span class="ar">${sortD<0?"▼":"▲"}</span>`:""}</th>`).join("");
@@ -54,7 +54,7 @@ function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>
  const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>sortK=="t"?sortD*a.localeCompare(b):sortD*((P[a][sortK]??-1e9)-(P[b][sortK]??-1e9)));
  $("#wl tbody").innerHTML=ts.map(t=>{const p=P[t];return`<tr data-t="${t}" class="${t==sel?"sel":""}"><td><span class="tk">${t}</span><span class="nm">${esc(D.tick[t].name)}</span></td><td class="num">$${fmt(p.price)}</td><td class="num">${fp(p.d1)}</td><td class="num">${fp(p.d5)}</td><td class="num hide-m">${fp(p.m1)}</td><td class="num hide-m">${fp(p.ytd)}</td></tr>`}).join("");
  $("#wl tbody").querySelectorAll("tr").forEach(r=>r.onclick=()=>select(r.dataset.t,true));if(!sel)select(ts[0])}
-let dRange="3M";
+let dRange="3M",dLive=false;
 function select(t,scroll){sel=t;if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
 function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dRange),seg=h.slice(i0),pts=seg.map(z=>z[1]);
  const room=x.target?pc(x.target,p.price):null,rp=x.rating?`<span class="pill ${x.rating=="Hold"?"h":x.rating=="Sell"?"s":""}">${x.rating}</span>`:'<span class="cap">No coverage</span>';
@@ -62,15 +62,18 @@ function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dR
  const nws=(D.news[t]||[]).map(i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`).join("");
  const lds=D.leaders.filter(l=>(l.tickers||[]).includes(t)).map(l=>`<div class="it"><div class="h">${esc(l.name)} <span class="cap" style="font-weight:400">${esc(l.title||"")}</span></div><div class="b">${esc(l.text)}</div><div class="m">${esc(l.format)} · ${esc(l.date)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`).join("");
  $("#detail").innerHTML=`<div class="dh"><span class="t">${t}</span><span class="cap" style="font-size:15px">${esc(x.name)}</span><span class="p num">$${fmt(p.price)}</span><span class="chg num">${fp(p.d1)}</span></div>
- <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 8px;flex-wrap:wrap"><span class="seg" id="dr">${["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==dRange?"on":""}">${r}</button>`).join("")}</span><span class="cap num">${dRange}: ${fp(rng)}</span></div>
- <div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:"#6B7178",label:"Avg target $"+fmt(x.target)}]:[]})}</div>
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 8px;flex-wrap:wrap"><span style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg" id="dlv"><button class="${dLive?"":"on"}">History</button><button class="${dLive?"on":""}">Live</button></span><span class="seg" id="dr" style="${dLive?"display:none":""}">${["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==dRange?"on":""}">${r}</button>`).join("")}</span></span><span class="cap num" style="${dLive?"display:none":""}">${dRange}: ${fp(rng)}</span></div>
+ ${dLive?`<div class="tvw" id="dtv"></div><div class="cap" style="margin-top:8px">Live chart for ${TV[t]} by TradingView.</div>`:""}
+ <div style="${dLive?"display:none":""}"><div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:"#6B7178",label:"Avg target $"+fmt(x.target)}]:[]})}</div>
+${asofNote()}</div>
  <div class="stats"><div><div class="k">Analysts</div><div class="v">${rp}</div>${x.n?`<div class="cap">${x.n} analysts</div>`:""}</div>
  <div><div class="k">Avg target</div><div class="v num">${x.target?"$"+fmt(x.target):"n/a"}</div>${x.low?`<div class="cap num">Range $${fmt(x.low,0)} to $${fmt(x.high,0)}</div>`:""}</div>
  <div><div class="k">Room to target</div><div class="v num">${room==null?"n/a":fp(room,1)}</div></div>
  <div><div class="k">Next earnings</div><div class="v">${e?wd(e.date):x.fund?"n/a (fund)":"Not set"}</div>${e&&e.eps!=null?`<div class="cap num">EPS est. $${fmt(e.eps)}</div>`:""}</div></div>
  <div class="sub2" style="margin-top:0">Latest news</div><div class="items">${nws||'<div class="empty">No major news in today\'s digest.</div>'}</div>
  <div class="sub2">Leaders on the record</div><div class="items">${lds||'<div class="empty">No new commentary in today\'s digest.</div>'}</div>`;
- $("#dr").querySelectorAll("button").forEach(b=>b.onclick=()=>{dRange=b.textContent;renderDetail()})}
+ $("#dr").querySelectorAll("button").forEach(b=>b.onclick=()=>{dRange=b.textContent;renderDetail()});
+ $("#dlv").querySelectorAll("button").forEach((b,k)=>b.onclick=()=>{dLive=k==1;renderDetail()});if(dLive)tvEmbed($("#dtv"),TV[t])}
 /* analysts */
 (function(){if(!has("#bars"))return;const r=D.tickers.filter(t=>D.tick[t]?.target).map(t=>({t,room:pc(D.tick[t].target,P[t].price)})).sort((a,b)=>b.room-a.room);
  const mx=Math.max(...r.map(z=>Math.abs(z.room))),neg=r.some(z=>z.room<0),mn=Math.min(0,...r.map(z=>z.room)),span=Math.max(...r.map(z=>z.room))-mn,zp=-mn/span*100;
@@ -106,10 +109,16 @@ function renderUST(){const h=UST.y10;if(!h){$("#usthist").innerHTML='<div class=
  $("#urc").innerHTML=`${uRange}: ${fbp(bp(pts[pts.length-1],pts[0]))}`;
  const W=Math.max(300,($("#ustc").clientWidth||800)-48);
  $("#uchart").innerHTML=axisChart([{pts,color:NAVY,w:2,label:1}],{W,H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>fmt(v,2)+"%",area:1,tip:(i,S)=>{const d=i>0?bp(S[0].pts[i],S[0].pts[i-1]):null;return`<div class="tv num">${fmt(S[0].pts[i],3)}%</div>${d!=null?`<div class="num">${fbp(d)} vs prior day</div>`:""}`}})}
-let tvDone=false;function loadTV(){if(tvDone)return;tvDone=true;const w=$("#tvw");w.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div></div>';
+/* TradingView official free Advanced Chart widget (attribution kept as shipped). Lazy: only called when a Live tab opens. */
+const TV={AXP:"NYSE:AXP",HHH:"NYSE:HHH",INTC:"NASDAQ:INTC",JPM:"NYSE:JPM",LMT:"NYSE:LMT",MRNA:"NASDAQ:MRNA",MSFT:"NASDAQ:MSFT",NVDA:"NASDAQ:NVDA",PS:"NYSE:PS",PSUS:"NYSE:PSUS",RJF:"NYSE:RJF",SPY:"AMEX:SPY",TSM:"NYSE:TSM",
+ "BZ=F":"TVC:UKOIL","GC=F":"TVC:GOLD","^VIX":"CAPITALCOM:VIX","DX-Y.NYB":"CAPITALCOM:DXY","^TNX":"US10Y"};
+const TVNOTE={"^VIX":"Live chart is Capital.com's VIX CFD, which tracks VIX futures and can differ from the spot index in History.","DX-Y.NYB":"Live chart is Capital.com's US Dollar Index CFD; it can differ slightly from ICE's index in History.","BZ=F":"Live chart is TradingView's Brent CFD (UKOIL); History uses the front-month Brent future.","GC=F":"Live chart is spot gold (TVC:GOLD); History uses the front-month gold future."};
+function tvEmbed(w,symbol,o={}){w.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div></div>';
  const sc=document.createElement("script");sc.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";sc.async=true;
- sc.text=JSON.stringify({autosize:true,symbol:"US10Y",interval:"5",range:"1D",timezone:"America/New_York",theme:"light",style:"3",locale:"en",allow_symbol_change:false,hide_side_toolbar:true,hide_volume:true,save_image:false,calendar:false,backgroundColor:"#ffffff",gridColor:"rgba(233,236,239,1)",support_host:"https://www.tradingview.com"});
+ sc.text=JSON.stringify(Object.assign({autosize:true,symbol,interval:"D",range:"3M",timezone:"America/New_York",theme:"light",style:"3",locale:"en",allow_symbol_change:false,hide_side_toolbar:true,hide_volume:true,save_image:false,calendar:false,backgroundColor:"#ffffff",gridColor:"rgba(229,232,236,1)",support_host:"https://www.tradingview.com"},o));
  w.firstChild.appendChild(sc)}
+let tvDone=false;function loadTV(){if(tvDone)return;tvDone=true;tvEmbed($("#tvw"),"US10Y",{interval:"5",range:"1D"})}
+const asofNote=()=>`<div class="cap" style="margin-top:8px">History data as of ${md(D.lastbar)} close (Yahoo Finance).</div>`;
 if(has("#ustab")){$("#ustab").querySelectorAll("button").forEach((b,j)=>b.onclick=()=>{$("#ustab").querySelectorAll("button").forEach((x,k)=>x.classList.toggle("on",k==j));$("#ustlive").style.display=j?"none":"";$("#usthist").style.display=j?"":"none";if(j)renderUST();else loadTV()});
 if(location.hash=="#hist")$("#ustab button:last-child").click();else loadTV()}
 /* subscribe: swap SUB_ENDPOINT for a Google Form / Formspree URL later (then POST instead of mailto) */
@@ -118,6 +127,21 @@ document.querySelectorAll("form[data-sub]").forEach(f=>f.onsubmit=e=>{e.preventD
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){m.textContent="Enter a valid email address.";f.email.focus();return}
  if(SUB_ENDPOINT.startsWith("mailto:")){location.href=SUB_ENDPOINT+"?subject="+encodeURIComponent("Subscribe: Benites Capital daily digest")+"&body="+encodeURIComponent("Please add me to the Benites Capital daily digest.\n\nEmail: "+em);m.textContent="Your email app should open. Hit send and we'll add you to the list."}
  else fetch(SUB_ENDPOINT,{method:"POST",headers:{Accept:"application/json"},body:new FormData(f)}).then(r=>{m.textContent=r.ok?"You're on the list.":"Something went wrong. Try again."}).catch(()=>m.textContent="Something went wrong. Try again.")});
+/* snapshot chart panel (index): History = our data, Live = TradingView */
+let snSym=null,snLive=true,snRange="3M";
+function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML="";document.querySelectorAll(".sct").forEach(b=>b.classList.remove("on"));return}
+ const s=D.snap.find(z=>z.sym==snSym),h=D.hist[snSym],tv=TV[snSym]&&snSym!="^TNX";document.querySelectorAll(".sct").forEach(b=>b.classList.toggle("on",b.dataset.sym==snSym));
+ if(!tv)snLive=false;const i0=since(h,snRange),seg=h.slice(i0),pts=seg.map(z=>z[1]),yf=v=>s.pre+fmt(v,s.dec)+s.suf;pn.hidden=false;
+ pn.innerHTML=`<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px"><b style="font-size:17px">${esc(s.name)}</b>
+ <span class="seg" id="snt"><button class="${snLive?"":"on"}">History</button>${tv?`<button class="${snLive?"on":""}">Live</button>`:""}</span>
+ <span class="seg" id="snr" style="${snLive?"display:none":""}">${["1M","3M","6M","1Y"].map(r=>`<button class="${r==snRange?"on":""}">${r}</button>`).join("")}</span>
+ <button class="x" id="snx" aria-label="Close chart">&times;</button></div>
+ ${snLive?`<div class="tvw" id="sntv"></div><div class="cap" style="margin-top:8px">Live chart for ${TV[snSym]} by TradingView. ${esc(TVNOTE[snSym]||"")}</div>`
+ :`<div class="chart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,pn.clientWidth||900),H:innerWidth<640?220:280,dates:seg.map(z=>z[0]),yf,area:1,tip:(i,S)=>`<div class="tv num">${yf(S[0].pts[i])}</div>`})}</div>${asofNote()}`}`;
+ $("#snt").querySelectorAll("button").forEach((b,k)=>b.onclick=()=>{snLive=k==1;renderSnap()});$("#snr").querySelectorAll("button").forEach(b=>b.onclick=()=>{snRange=b.textContent;renderSnap()});
+ $("#snx").onclick=()=>{snSym=null;renderSnap()};if(snLive)tvEmbed($("#sntv"),TV[snSym])}
+if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]&&snSym!="^TNX"}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
+document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
 if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2" style="margin:0 0 8px"><a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news in today\'s digest.</div>';
@@ -142,5 +166,5 @@ if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it
  document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"));if(t){e.preventDefault();t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}))})();
 /* ticker deep link: portfolio.html#NVDA */
 if(has("#wl")){const hk=decodeURIComponent(location.hash.slice(1)).toUpperCase();const dl=D.tickers.includes(hk);renderWL();if(dl)select(hk);if(dl)setTimeout(()=>$("#detail").scrollIntoView({block:"start"}),50)}
-if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
+if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel&&!dLive)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
 
