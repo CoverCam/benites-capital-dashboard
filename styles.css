@@ -141,3 +141,5 @@ section.card{scroll-margin-top:24px}
 .hamb span,.hamb span:before,.hamb span:after{display:block;width:18px;height:2px;background:var(--ink);border-radius:1px;content:""}
 .hamb span{position:relative}.hamb span:before{position:absolute;top:-6px}.hamb span:after{position:absolute;top:6px}
 body.drawer .hamb span{background:transparent}body.drawer .hamb span:before{top:0;transform:rotate(45deg)}body.drawer .hamb span:after{top:0;transform:rotate(-45deg)}
+
+.chiprow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.chiprow+.chiprow{margin-top:10px}.chl{font-size:12px;font-weight:600;color:var(--mute);margin-right:4px}
