@@ -162,7 +162,7 @@ if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it
  document.querySelectorAll(".sb a").forEach(a=>a.addEventListener("click",()=>setD(false)));
  document.querySelectorAll('a[href^="#s-sub"]').forEach(a=>a.addEventListener("click",e=>{const t=$(a.getAttribute("href"))||$("#s-sub2");if(t){e.preventDefault();setD(false);t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.querySelector("input").focus({preventScroll:true}),500)}}))})();
 /* page summary card: bullets generated from data only */
-(function(){if(!has("#sumt"))return;const pgn=document.body.dataset.page,S=$("#sums"),pct=v=>(v>=0?"+":"")+fmt(v,2)+"%";let L=[];
+(function(){if(!has("#sumt"))return;const pgn=document.body.dataset.page,S=$("#sums"),pct=v=>fp(v);let L=[];
  const sents=t=>String(t||"").split(/(?<=[.!?])\s+(?=[A-Z"\u201C])/).map(x=>esc(x.trim())).filter(Boolean);
  if(pgn=="markets"){L=Array.isArray(D.topline_points)&&D.topline_points.length?D.topline_points.map(esc):sents(D.topline);S.textContent="From today's digest: "+D.news_date}
  else if(pgn=="index"){const hs=D.tickers.filter(t=>t!="SPY"&&P[t]&&P[t].d1!=null),wl=hs.reduce((a,t)=>a+P[t].d1,0)/hs.length,sp=P.SPY?.d1,srt=hs.slice().sort((a,b)=>P[b].d1-P[a].d1),hi=srt[0],lo=srt[srt.length-1];

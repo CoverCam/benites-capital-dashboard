@@ -224,3 +224,4 @@ tbody tr:hover td:first-child,tbody tr.sel td:first-child,tbody tr.sel:hover td:
 #wl th:first-child,#wl td:first-child{padding-left:14px}#wl th:last-child,#wl td:last-child{padding-right:14px}
 #wl td{font-size:14px}
 #wl th,#wl td{padding-left:8px;padding-right:8px}#wl th:first-child,#wl td:first-child{padding-left:14px}#wl th:last-child,#wl td:last-child{padding-right:14px}
+.up,.chg.up,.v.up{color:var(--blue);font-weight:600}.dn,.chg.dn,.v.dn{color:var(--ink);font-weight:600}
