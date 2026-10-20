@@ -47,14 +47,14 @@ if(has("#asof"))$("#asof").textContent="Data as of "+D.asof+" · latest daily ba
 if(has("#snap"))$("#snap").innerHTML=D.snap.map(s=>{const h=D.hist[s.sym];if(!h)return"";const n=h.length,v=h[n-1][1],ch=s.sym==="^TNX"?(v-h[n-2][1])*100:pc(v,h[n-2][1]);
  const cs=s.sym==="^TNX"?`<span class="chg ${ch>=0?"up":"dn"} num">${ch>=0?"+":""}${ch.toFixed(0)} bp</span>`:`<span class="chg num">${fp(ch)}</span>`;
  return`<button class="sc sct" data-sym="${esc(s.sym)}" aria-controls="snp" title="Open chart"><div class="n">${esc(s.name)}<span class="lv">Chart ›</span></div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></button>`}).join("");
-const COLS=[["t","Ticker"],["price","Price"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"]];
+const COLS=[["t","Ticker"],["price","Close"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"]];
 let sortK="d1",sortD=-1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,perf(t)]));
 function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>`<th data-k="${k}" class="${k==sortK?"on":""} ${i>=4?"hide-m":""}">${l}${k==sortK?`<span class="ar">${sortD<0?"▼":"▲"}</span>`:""}</th>`).join("");
  th.querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;sortD=k==sortK?-sortD:(k=="t"?1:-1);sortK=k;renderWL()});
  const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>sortK=="t"?sortD*a.localeCompare(b):sortD*((P[a][sortK]??-1e9)-(P[b][sortK]??-1e9)));
  $("#wl tbody").innerHTML=ts.map(t=>{const p=P[t];return`<tr data-t="${t}" class="${t==sel?"sel":""}"><td><span class="tk">${t}</span><span class="nm">${esc(D.tick[t].name)}</span></td><td class="num">$${fmt(p.price)}</td><td class="num">${fp(p.d1)}</td><td class="num">${fp(p.d5)}</td><td class="num hide-m">${fp(p.m1)}</td><td class="num hide-m">${fp(p.ytd)}</td></tr>`}).join("");
  $("#wl tbody").querySelectorAll("tr").forEach(r=>r.onclick=()=>select(r.dataset.t,true));if(!sel)select(ts[0])}
-let dRange="3M",dLive=false;
+let dRange="3M",dLive=true;
 function select(t,scroll){sel=t;if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
 function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dRange),seg=h.slice(i0),pts=seg.map(z=>z[1]);
  const room=x.target?pc(x.target,p.price):null,rp=x.rating?`<span class="pill ${x.rating=="Hold"?"h":x.rating=="Sell"?"s":""}">${x.rating}</span>`:'<span class="cap">No coverage</span>';
@@ -143,7 +143,7 @@ function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML=
  :`<div class="chart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,pn.clientWidth||900),H:innerWidth<640?220:280,dates:seg.map(z=>z[0]),yf,area:1,tip:(i,S)=>`<div class="tv num">${yf(S[0].pts[i])}</div>`})}</div>${asofNote()}`}`;
  $("#snt").querySelectorAll("button").forEach((b,k)=>b.onclick=()=>{snLive=k==1;renderSnap()});$("#snr").querySelectorAll("button").forEach(b=>b.onclick=()=>{snRange=b.textContent;renderSnap()});
  $("#snx").onclick=()=>{snSym=null;renderSnap()};if(snLive)tvEmbed($("#sntv"),TV[snSym])}
-if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]&&snSym!="^TNX"}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
+if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
 document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 /* old anchors on news.html */
 if(has("#s-earn")&&["#s-cal","#s-up","#s-feed"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"?"#s-big":"#s-earn").scrollIntoView(),50);
@@ -184,3 +184,11 @@ if(has("#wl")){const hk=decodeURIComponent(location.hash.slice(1)).toUpperCase()
 if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel&&!dLive)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
 
 
+
+/* TradingView live widgets (free, official embeds, branding kept) */
+function tvWidget(el,kind,cfg){if(!el)return;el.innerHTML='<div class="tradingview-widget-container"><div class="tradingview-widget-container__widget"></div><div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div></div>';
+ const sc=document.createElement("script");sc.src="https://s3.tradingview.com/external-embedding/embed-widget-"+kind+".js";sc.async=true;sc.text=JSON.stringify(Object.assign({colorTheme:"light",isTransparent:true,locale:"en"},cfg));el.firstChild.appendChild(sc)}
+const LIVE=D.tickers.filter(t=>TV[t]);
+tvWidget($("#tape"),"ticker-tape",{symbols:LIVE.map(t=>({proName:TV[t],title:t})),showSymbolLogo:false,displayMode:"compact"});
+tvWidget($("#liveq"),"market-quotes",{width:"100%",height:innerWidth<640?600:560,showSymbolLogo:false,symbolsGroups:[{name:"Holdings + SPY",originalName:"Holdings",symbols:LIVE.map(t=>({name:TV[t],displayName:t+" · "+((D.tick[t]||{}).name||t)}))}]});
+if(has("#closeasof"))$("#closeasof").textContent="As of "+D.asof.replace(/, \d{4},/,",")+". 5 day, 1 month and YTD from closes.";
