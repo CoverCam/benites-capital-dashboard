@@ -325,8 +325,8 @@ footer{padding:var(--s5) 0 var(--s7)}
 .ek .k,.enotes .k{font-size:var(--t-xs);font-weight:600}.ek .v{font-size:var(--t-kpi);font-weight:700;margin:4px 0 2px}.ek .cap{line-height:1.5}
 .ek .ech{margin-left:2px;vertical-align:1px}
 .enotes{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px}.enotes p{margin:4px 0 0;font-size:var(--t-sm);line-height:1.55}
-.lg{display:inline-flex;align-items:center;gap:6px;margin-right:12px}.lg i{width:10px;height:10px;border-radius:50%;display:inline-block}
-.lg i.o{border:1.5px solid var(--ink);box-sizing:border-box}.lg i.d{width:14px;height:0;border-top:2px dashed var(--ink);border-radius:0}
+.lgi{display:inline-flex;align-items:center;gap:6px;margin-right:12px}.lgi i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.lgi i.o{border:1.5px solid var(--ink);box-sizing:border-box}.lgi i.d{width:14px;height:0;border-top:2px dashed var(--ink);border-radius:0}
 .e2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 #esrc{margin-top:-8px}
 @media(max-width:1100px){.ecal{grid-template-columns:repeat(4,minmax(0,1fr))}.ekg{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -396,3 +396,5 @@ h2 .r,h2 .cap.r{margin-left:auto;width:auto;font-size:var(--t-xs);font-weight:50
 .ect{min-width:0;overflow:hidden}.ect .ett{min-width:0;max-width:100%}
 @media(max-width:640px){.tkw .lg{--z:24px;border-radius:6px}.tkw .lg.mono{border-radius:50%}.tkw .nm{max-width:88px!important}}
 @media(max-width:640px){#wl th,#wl td{padding-left:6px;padding-right:6px}#wl th:first-child,#wl td:first-child{padding-left:8px}#wl th:last-child,#wl td:last-child{padding-right:8px}}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.legend .lgi{display:inline-flex;align-items:center;gap:6px;width:auto;height:auto;margin:0;padding:4px 10px;border:1px solid var(--line,#E5E7EB);border-radius:999px;background:transparent;font-size:12px;line-height:16px;color:var(--ink);white-space:nowrap;overflow:visible}.lgi i.ln{width:16px;height:0;border-radius:0;background:none!important}.lgi.off{color:var(--mute);opacity:.6}.lgi.off i{opacity:.4}
