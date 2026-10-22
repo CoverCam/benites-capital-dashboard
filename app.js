@@ -1,3 +1,4 @@
+const LOGOS=window.BC_LOGOS||{};const lg=(t,c="")=>LOGOS[t]?`<span class="lg ${c}"><img src="${LOGOS[t]}" alt="" loading="lazy" onerror="if(!this.dataset.r&&this.src.slice(0,5)!='data:'){this.dataset.r=1;this.src=this.src.split('#')[0]+'&r='+Date.now();return}this.parentNode.classList.add('mono');this.parentNode.textContent='${t}'.slice(0,2)"></span>`:`<span class="lg mono ${c}" aria-hidden="true">${t.replace(/[^A-Z]/g,"").slice(0,2)}</span>`;
 const D=window.BC_DATA,has=s=>!!document.querySelector(s);
 const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const NAVY="var(--pf)",INK="var(--ink)",MUTE="var(--mute)",LINE="var(--line)",PAL=["var(--ink)"];const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -52,7 +53,7 @@ let sortK="d1",sortD=-1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,
 function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>`<th data-k="${k}" class="${k==sortK?"on":""} ${i>=4?"hide-m":""}">${l}${k==sortK?`<span class="ar">${sortD<0?"▼":"▲"}</span>`:""}</th>`).join("");
  th.querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;sortD=k==sortK?-sortD:(k=="t"?1:-1);sortK=k;renderWL()});
  const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>sortK=="t"?sortD*a.localeCompare(b):sortD*((P[a][sortK]??-1e9)-(P[b][sortK]??-1e9)));
- $("#wl tbody").innerHTML=ts.map(t=>{const p=P[t];return`<tr data-t="${t}" class="${t==sel?"sel":""}"><td><span class="tk">${t}</span><span class="nm">${esc(D.tick[t].name)}</span></td><td class="num">$${fmt(p.price)}</td><td class="num">${fp(p.d1)}</td><td class="num">${fp(p.d5)}</td><td class="num hide-m">${fp(p.m1)}</td><td class="num hide-m">${fp(p.ytd)}</td></tr>`}).join("");
+ $("#wl tbody").innerHTML=ts.map(t=>{const p=P[t];return`<tr data-t="${t}" class="${t==sel?"sel":""}"><td><span class="tkw">${lg(t)}<span><span class="tk">${t}</span><span class="nm">${esc(D.tick[t].name)}</span></span></span></td><td class="num">$${fmt(p.price)}</td><td class="num">${fp(p.d1)}</td><td class="num">${fp(p.d5)}</td><td class="num hide-m">${fp(p.m1)}</td><td class="num hide-m">${fp(p.ytd)}</td></tr>`}).join("");
  $("#wl tbody").querySelectorAll("tr").forEach(r=>r.onclick=()=>select(r.dataset.t,true));if(!sel)select(ts[0])}
 let dRange="3M",dLive=true;
 function select(t,scroll){sel=t;if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
@@ -61,7 +62,7 @@ function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dR
  const e=x.earnings;const rng=pc(pts[pts.length-1],pts[0]);
  const nws=(D.news[t]||[]).map(i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`).join("");
  const lds=D.leaders.filter(l=>(l.tickers||[]).includes(t)).map(l=>`<div class="it"><div class="h">${esc(l.name)} <span class="cap" style="font-weight:400">${esc(l.title||"")}</span></div><div class="b">${esc(l.text)}</div><div class="m">${esc(l.format)} · ${esc(l.date)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`).join("");
- $("#detail").innerHTML=`<div class="dh"><span class="t">${t}</span><span class="cap" style="font-size:var(--t-body)">${esc(x.name)}</span><span class="p num">$${fmt(p.price)}</span><span class="chg num">${fp(p.d1)}</span></div>
+ $("#detail").innerHTML=`<div class="dh">${lg(t,"l")}<span class="t">${t}</span><span class="cap" style="font-size:var(--t-body)">${esc(x.name)}</span><span class="p num">$${fmt(p.price)}</span><span class="chg num">${fp(p.d1)}</span></div>
  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 8px;flex-wrap:wrap"><span style="display:flex;gap:8px;flex-wrap:wrap"><span class="seg" id="dlv"><button class="${dLive?"":"on"}">History</button><button class="${dLive?"on":""}">Live</button></span><span class="seg" id="dr" style="${dLive?"display:none":""}">${["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==dRange?"on":""}">${r}</button>`).join("")}</span></span><span class="cap num" style="${dLive?"display:none":""}">${dRange}: ${fp(rng)}</span></div>
  ${dLive?`<div class="tvw" id="dtv"></div><div class="cap" style="margin-top:8px">Live via TradingView.</div>`:""}
  <div style="${dLive?"display:none":""}"><div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:INK,label:"Avg target $"+fmt(x.target)}]:[]})}</div>
@@ -149,7 +150,7 @@ document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 if(has("#s-earn")&&["#s-cal","#s-up","#s-feed"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"?"#s-big":"#s-earn").scrollIntoView(),50);
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
-if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2" style="margin:0 0 8px"><a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
+if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 16px">${lg(t,"s")}<a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
 if(has("#leaders"))$("#leaders").innerHTML=D.leaders.map(l=>`<div class="it"><div class="h">${esc(l.name)} <span class="cap" style="font-weight:400">${esc(l.title||"")}</span></div><div class="b">${esc(l.text)}</div><div class="m">${esc(l.format)} · ${esc(l.date)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`).join("")||'<div class="empty">No new commentary today.</div>';
 /* overview previews */
 if(has("#pv-ust")){const h=UST.y10;if(h){const n=h.length,v=h[n-1][1];$("#pv-ust").innerHTML=`<div class="big1 num">${fmt(v,2)}%</div><div class="chg num">${fbp(bp(v,h[n-2][1]))} today</div><div style="margin-top:12px">${spark(h).replace('width="80" height="28"','width="100%" height="56" preserveAspectRatio="none"')}</div><div class="cap">10-year yield, last 30 sessions</div>`}}
@@ -209,10 +210,10 @@ if(has("#ecal")&&D.earn){
  let cur=new URLSearchParams(location.search).get("t");cur=cur&&E[cur.toUpperCase()]?cur.toUpperCase():(order.find(recent)||order[0]);
  function cal(){$("#ecal").innerHTML=order.map(t=>{const r=recent(t),h=lastH(t),n=E[t].next;
    const when=r?`${md(h.date)}${h.time?" · "+h.time:""}`:n?`${md(n.date)}${n.time?" · "+n.time:""}`:"Date not set";
-   return`<button class="ect${t==cur?" on":""}" data-t="${t}"><div class="ett"><b>${t}</b>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc(NM(t))}</div><div class="ewn num${r?" rp":""}">${when}${r?chip(h.surprise):""}</div></button>`}).join("");
+   return`<button class="ect${t==cur?" on":""}" data-t="${t}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc(NM(t))}</div><div class="ewn num${r?" rp":""}">${when}${r?chip(h.surprise):""}</div></button>`}).join("");
   $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>pick(b.dataset.t,1));
   $("#ecalnote").textContent=""}
- $("#esel").innerHTML=TS.map(t=>`<button role="tab" data-t="${t}">${t}</button>`).join("");
+ $("#esel").innerHTML=TS.map(t=>`<button role="tab" data-t="${t}" class="lgb">${t}${lg(t,"xs")}</button>`).join("");
  $("#esel").querySelectorAll("button").forEach(b=>b.onclick=()=>pick(b.dataset.t));
  function pick(t,scroll){cur=t;history.replaceState(null,"","?t="+t);cal();render();if(scroll)$("#s-edet").scrollIntoView({behavior:"smooth",block:"start"})}
  const marg=(q,k)=>q&&q[k]!=null&&q.revenue?q[k]/q.revenue*100:null,pctv=v=>v==null?'<span class="cap">n/a</span>':`<span class="num">${fmt(v,1)}%</span>`;
@@ -228,7 +229,7 @@ if(has("#ecal")&&D.earn){
   $("#esel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t==cur));
   const yo=q&&qs.find(z=>z.period.slice(0,4)==String(+q.period.slice(0,4)-1)&&z.period.slice(5,7)==q.period.slice(5,7)),prev=yo?yo.revenue:src.revenue_prior_year,yoy=q&&q.revenue&&prev?(q.revenue/prev-1)*100:null;
   const rest=src.revenue_est,rs=q&&rest?(q.revenue/rest-1)*100:null,n=x.next;
-  $("#edet").innerHTML=`<div class="eh"><div><span class="t">${cur}</span> <span class="cap" style="font-size:var(--t-body)">${esc(NM(cur))}</span></div>
+  $("#edet").innerHTML=`<div class="eh"><div class="lgh">${lg(cur,"l")}<span class="t">${cur}</span> <span class="cap" style="font-size:var(--t-body)">${esc(NM(cur))}</span></div>
    <div class="cap">${q?ql(q.period).replace(" '"," 20"):"No quarterly data"}${h?" · Reported "+md(h.date):""}${n?" · Next "+md(n.date)+(n.time?" "+n.time:""):""}</div></div>
    <div class="ekg">${kpi("Revenue",q?money(q.revenue):"n/a",rest?`vs ${money(rest)} est. ${fp(rs,1)}`:"Estimate n/a",rest?chip(rs):"")}
    ${kpi("EPS",h?"$"+fmt(h.eps):"n/a",h&&h.est!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:"Estimate n/a",h&&h.est!=null?chip(h.surprise):"")}
