@@ -278,3 +278,18 @@ if(has("#ecal")&&D.earn){
  const w=document.createElement("div");w.className="kpiw";w.id="s-top";
  w.innerHTML=`<div class="kpis"><section class="card kpi"><div class="kl">Portfolio today</div><span class="lg kpl kshield"><img src="favicon.svg" alt=""></span>${kv(wl)}<div class="kid">${pill}<span>${sp==null?"":`SPY ${sp>=0?"+":""}${fmt(sp,2)}% · `}Equal weight, ${hs.length} holdings vs prior close.</span></div></section>${mv("Top mover",hi)}${mv("Bottom mover",lo)}</div>`;
  $("#s-top").replaceWith(w);w.parentElement.classList.add("kprow")})();
+/* holdings: equal visible whitespace between ALL columns */
+(function(){const t=$("#wl");if(!t)return;let busy=false;
+ const cw=e=>{const g=document.createRange();g.selectNodeContents(e.querySelector(".thl,.tkw")||e);return g.getBoundingClientRect().width};
+ function eq(){if(busy)return;busy=true;const hs=[...t.tHead.rows[0].cells];t.style.setProperty("--gx","0px");hs.forEach(h=>h.style.width="");
+  const vis=hs.map((h,i)=>h.offsetWidth?i:-1).filter(i=>i>=0),rows=[...t.tBodies[0].rows];
+  const W=vis.map(i=>Math.ceil(Math.max(cw(hs[i]),...rows.map(r=>r.cells[i]&&r.cells[i].offsetWidth?cw(r.cells[i]):0))));
+  const edge=parseFloat(getComputedStyle(hs[0]).paddingLeft)||12,avail=t.parentElement.clientWidth-2*edge,gap=Math.max(8,Math.floor((avail-W.reduce((a,b)=>a+b,0))/(vis.length-1)));
+  t.style.setProperty("--gx",gap+"px");vis.forEach((i,k)=>{hs[i].style.width=(k==0?W[k]+edge:W[k]+gap+(k==vis.length-1?edge:0))+"px"});t.dataset.gap=gap;busy=false}
+ window.BC_eqCols=eq;new MutationObserver(()=>requestAnimationFrame(eq)).observe(t.tBodies[0],{childList:true});addEventListener("resize",()=>requestAnimationFrame(eq));document.fonts&&document.fonts.ready.then(eq);setTimeout(eq,50)})();
+/* holdings: grow rows evenly to fill card at 1440+ (min 52px) */
+(function(){const t=$("#wl");if(!t)return;const mq=matchMedia("(min-width:1440px)");
+ function fill(){const p=$("#s-port"),rows=[...t.tBodies[0].rows];t.style.removeProperty("--row-h");if(!mq.matches||!rows.length)return;
+  const pb=p.getBoundingClientRect(),pad=parseFloat(getComputedStyle(p).paddingBottom),tb=t.getBoundingClientRect(),after=[...p.children].filter(e=>e.getBoundingClientRect().top>=tb.bottom-1).reduce((a,e)=>a+e.getBoundingClientRect().height+parseFloat(getComputedStyle(e).marginTop),0);
+  const free=pb.bottom-pad-after-tb.bottom;if(free<=1)return;const h=Math.floor((rows.length*52+free)/rows.length*10)/10;t.style.setProperty("--row-h",Math.max(52,h)+"px")}
+ const go=()=>requestAnimationFrame(fill);new ResizeObserver(go).observe($("#detail")||t);new MutationObserver(go).observe(t.tBodies[0],{childList:true});addEventListener("resize",go);setTimeout(fill,100)})();

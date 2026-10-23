@@ -554,3 +554,11 @@ td.num,#wl td:not(:first-child){text-align:right;font-variant-numeric:tabular-nu
 .kpi{border:1px solid var(--edge)}.kpi:hover{border-color:var(--blue)}
 @media(hover:none){.kpi:hover{border-color:var(--edge)}}
 .kid{min-height:64px}@media(max-width:640px){.kid{min-height:36px}}
+/* holdings fill card height at 1440+ */
+@media(min-width:1440px){.main2 #s-port{display:flex;flex-direction:column}.main2 #s-port .tw{flex:1;display:flex;flex-direction:column}.main2 #s-port #wl{flex:1;height:100%}#wl td{vertical-align:middle}}
+/* equal column gaps (widths set by BC_eqCols) */
+#wl th:not(:first-child),#wl td:not(:first-child){padding-left:var(--gx,var(--cell-x));padding-right:0}
+#wl th:last-child,#wl td:last-child{padding-right:var(--cell-edge)}
+#wl th:first-child,#wl td:first-child{padding-right:0}
+#wl .nm{overflow:visible}
+@media(min-width:1440px){.main2 #s-port #wl{flex:none;height:auto}}
