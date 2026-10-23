@@ -562,3 +562,4 @@ td.num,#wl td:not(:first-child){text-align:right;font-variant-numeric:tabular-nu
 #wl th:first-child,#wl td:first-child{padding-right:0}
 #wl .nm{overflow:visible}
 @media(min-width:1440px){.main2 #s-port #wl{flex:none;height:auto}}
+.kpi .kv{font-size:32px}@media(max-width:640px){.kpi .kv{font-size:18px}}
