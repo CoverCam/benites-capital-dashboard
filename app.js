@@ -173,7 +173,7 @@ if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it
   L=ev.slice(0,3).map(c=>`<b>${wd(c.date)}</b>: ${esc(c.kind=="Earnings"?(c.t||c.title)+" earnings":c.title)}${c.time?" ("+esc(c.time.toLowerCase())+")":""}.`);
   if(D.macro_note)L.push("Macro: "+esc(D.macro_note));if(!L.length)L=["Nothing scheduled in the next 14 days."];S.textContent="Earnings dates via Yahoo Finance; macro from today's digest."}
  else if(pgn=="earnings"&&D.earn){const E=D.earn,ts=Object.keys(E),rec=ts.filter(t=>E[t].history.length).sort((a,b)=>E[b].history.at(-1).date.localeCompare(E[a].history.at(-1).date)),up=ts.filter(t=>E[t].next).sort((a,b)=>E[a].next.date.localeCompare(E[b].next.date));
-  const r=rec[0];if(r){const h=E[r].history.at(-1);L.push(`Latest: <b>${r}</b> ${md(h.date)}, EPS $${fmt(h.eps)} vs $${fmt(h.est)} est. (${fp(h.surprise,1)}).`)}
+  const r=rec[0];if(r){const h=E[r].history.at(-1);L.push(h.eps==null?`Latest: <b>${r}</b> reported ${md(h.date)}, figures pending.`:`Latest: <b>${r}</b> ${md(h.date)}, EPS $${fmt(h.eps)} vs $${fmt(h.est)} est. (${fp(h.surprise,1)}).`)}
   up.slice(0,3).forEach(t=>L.push(`Next: <b>${t}</b> ${md(E[t].next.date)}${E[t].next.time?" "+E[t].next.time:""}.`));
   S.textContent="Via Yahoo Finance."}
  else if(pgn=="news"){const b=D.big[0],ev=D.cal.find(c=>c.date>=D.lastbar),ld=D.leaders[0];
@@ -200,7 +200,7 @@ tvWidget($("#liveq"),"market-quotes",{width:"100%",height:innerWidth<640?600:560
 
 /* earnings page */
 if(has("#ecal")&&D.earn){
- const E=D.earn,TS=D.tickers.filter(t=>E[t]),run=D.lastbar,NM=t=>(D.tick[t]||{}).name||t;
+ const E=D.earn,TS=D.tickers.filter(t=>E[t]),run=D.run||D.lastbar,NM=t=>(D.tick[t]||{}).name||t;
  const money=v=>v==null?"n/a":(Math.abs(v)>=1e9?"$"+fmt(v/1e9,2)+"B":"$"+fmt(v/1e6,0)+"M");
  const days=(a,b)=>(new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5;
  const lastH=t=>E[t].history.at(-1),recent=t=>{const h=lastH(t);return h&&days(h.date,run)<=45&&days(h.date,run)>=-1};
@@ -210,7 +210,7 @@ if(has("#ecal")&&D.earn){
  let cur=new URLSearchParams(location.search).get("t");cur=cur&&E[cur.toUpperCase()]?cur.toUpperCase():(order.find(recent)||order[0]);
  function cal(){$("#ecal").innerHTML=order.map(t=>{const r=recent(t),h=lastH(t),n=E[t].next;
    const when=r?`${md(h.date)}${h.time?" · "+h.time:""}`:n?`${md(n.date)}${n.time?" · "+n.time:""}`:"Date not set";
-   return`<button class="ect${t==cur?" on":""}" data-t="${t}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc(NM(t))}</div><div class="ewn num${r?" rp":""}">${when}${r?chip(h.surprise):""}</div></button>`}).join("");
+   return`<button class="ect${t==cur?" on":""}" data-t="${t}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc(NM(t))}</div><div class="ewn num${r?" rp":""}">${when}${r?(h.pending?' <span class="cap">results pending</span>':chip(h.surprise)):""}</div></button>`}).join("");
   $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>pick(b.dataset.t,1));
   $("#ecalnote").textContent=""}
  $("#esel").innerHTML=TS.map(t=>`<button role="tab" data-t="${t}" class="lgb">${t}${lg(t,"xs")}</button>`).join("");
@@ -232,12 +232,12 @@ if(has("#ecal")&&D.earn){
   $("#edet").innerHTML=`<div class="eh"><div class="lgh">${lg(cur,"l")}<span class="t">${cur}</span> <span class="cap" style="font-size:var(--t-body)">${esc(NM(cur))}</span></div>
    <div class="cap">${q?ql(q.period).replace(" '"," 20"):"No quarterly data"}${h?" · Reported "+md(h.date):""}${n?" · Next "+md(n.date)+(n.time?" "+n.time:""):""}</div></div>
    <div class="ekg">${kpi("Revenue",q?money(q.revenue):"n/a",rest?`vs ${money(rest)} est. ${fp(rs,1)}`:"Estimate n/a",rest?chip(rs):"")}
-   ${kpi("EPS",h?"$"+fmt(h.eps):"n/a",h&&h.est!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:"Estimate n/a",h&&h.est!=null?chip(h.surprise):"")}
+   ${kpi(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):"n/a",h&&h.est!=null&&h.eps!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:h&&h.pending?"Reported today, figures pending":"Estimate n/a",h&&h.est!=null&&h.eps!=null?chip(h.surprise):"")}
    ${kpi("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a")}
    ${kpi("Gross margin",pctv(marg(q,"gross")),"")}${kpi("Operating margin",pctv(marg(q,"operating")),"")}${kpi("Net margin",pctv(marg(q,"net")),"")}</div>
    ${x.guidance||x.takeaway?`<div class="enotes">${x.takeaway?`<div><div class="k">Takeaway</div><p>${esc(x.takeaway)} ${x.takeaway_url?`<a href="${esc(x.takeaway_url)}" target="_blank" rel="noopener">${esc(x.takeaway_source||"Source")}</a>`:""}</p></div>`:""}${x.guidance?`<div><div class="k">Guidance</div><p>${esc(x.guidance)}</p></div>`:""}</div>`:""}`;
   $("#erev").innerHTML=bars(qs.map(z=>z.revenue),qs.map(z=>ql(z.period)),money);
-  const hs=x.history;$("#eeps").innerHTML=hs.length?(()=>{const W=520,H=220,P={l:8,r:8,t:16,b:28},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
+  const hs=x.history.filter(z=>z.eps!=null);$("#eeps").innerHTML=hs.length?(()=>{const W=520,H=220,P={l:8,r:8,t:16,b:28},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
    let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="12" text-anchor="middle" style="fill:var(--ink)">${ql(new Date(new Date(z.date).getTime()-50*864e5).toISOString().slice(0,10))}</text>`;
     if(z.est!=null)g+=`<circle cx="${cx}" cy="${sy(z.est)}" r="6" fill="none" style="stroke:var(--ink)" stroke-width="1.5"/>`;
     if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="6" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/><text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+22:sy(Math.max(z.eps,z.est??z.eps))-12}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
