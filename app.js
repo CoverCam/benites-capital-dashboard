@@ -145,12 +145,12 @@ let tvDone=false;function loadTV(){if(tvDone)return;tvDone=true;tvEmbed($("#tvw"
 const asofNote=()=>"";
 if(has("#ustab")){$("#ustab").querySelectorAll("button").forEach((b,j)=>b.onclick=()=>{$("#ustab").querySelectorAll("button").forEach((x,k)=>x.classList.toggle("on",k==j));$("#ustlive").style.display=j?"none":"";$("#usthist").style.display=j?"":"none";if(j)renderUST();else loadTV()});
 if(location.hash=="#hist")$("#ustab button:last-child").click();else loadTV()}
-/* subscribe: swap SUB_ENDPOINT for a Google Form / Formspree URL later (then POST instead of mailto) */
-const SUB_ENDPOINT="mailto:benitescapital@gmail.com";
+/* subscribe: posts to a Google Form (benitescapital@gmail.com) that feeds the "Benites Capital Digest Signups" Google Sheet */
+const SUB_ENDPOINT="https://docs.google.com/forms/d/e/1FAIpQLSfui5Vi0ZWQRgHUaAv1l45w9y2qRbA8iajkcLYAe2DqajKfSw/formResponse",SUB_FIELD="entry.75554105";
 document.querySelectorAll("form[data-sub]").forEach(f=>f.onsubmit=e=>{e.preventDefault();const em=f.email.value.trim(),m=f.querySelector(".msg");
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){m.textContent="Enter a valid email address.";f.email.focus();return}
- if(SUB_ENDPOINT.startsWith("mailto:")){location.href=SUB_ENDPOINT+"?subject="+encodeURIComponent("Subscribe: Benites Capital daily digest")+"&body="+encodeURIComponent("Please add me to the Benites Capital daily digest.\n\nEmail: "+em);m.textContent="Your email app will open. Hit send to join."}
- else fetch(SUB_ENDPOINT,{method:"POST",headers:{Accept:"application/json"},body:new FormData(f)}).then(r=>{m.textContent=r.ok?"You're on the list.":"Something went wrong. Try again."}).catch(()=>m.textContent="Something went wrong. Try again.")});
+ m.textContent="Joining...";const body=new URLSearchParams();body.append(SUB_FIELD,em);
+ fetch(SUB_ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body}).then(()=>{m.textContent="You're on the list. The next digest lands in your inbox.";f.email.value=""}).catch(()=>m.textContent="Something went wrong. Try again.")});
 /* snapshot chart panel (index): History = our data, Live = TradingView */
 let snSym=null,snLive=true,snRange="3M";
 function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML="";document.querySelectorAll(".sct").forEach(b=>b.classList.remove("on"));return}
