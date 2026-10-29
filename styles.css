@@ -563,3 +563,12 @@ td.num,#wl td:not(:first-child){text-align:right;font-variant-numeric:tabular-nu
 #wl .nm{overflow:visible}
 @media(min-width:1440px){.main2 #s-port #wl{flex:none;height:auto}}
 .kpi .kv{font-size:32px}@media(max-width:640px){.kpi .kv{font-size:18px}}
+/* Foreign Treasury holders (s-tsy) */
+table.tsy{table-layout:fixed}table.tsy th{cursor:default}table.tsy th:first-child,table.tsy td:first-child{width:28%}
+table.tsy td{font-variant-numeric:tabular-nums}table.tsy td.up{color:var(--blue);font-weight:600}table.tsy td.dn{color:var(--ink)}
+table.tsy tr.tot td{font-weight:700;border-top:2px solid var(--line2)}table.tsy tr.off td{color:var(--body)}
+.tsyh{font-size:var(--t-card,17px);margin:var(--s5) 0 var(--s3);color:var(--ink)}
+@media(max-width:640px){table.tsy{font-size:var(--t-sm)}table.tsy th:first-child,table.tsy td:first-child{width:34%}table.tsy th,table.tsy td{padding-left:4px;padding-right:4px}}
+table.tsy th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:2px 0;border-radius:4px}
+table.tsy th button:hover{color:var(--blue)}table.tsy th button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+table.tsy th.on button{color:var(--blue)}table.tsy th .ar{font-size:9px;min-width:9px}table.tsy tfoot tr.tot td{border-top:2px solid var(--line2)}
