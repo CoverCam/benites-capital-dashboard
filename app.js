@@ -12,7 +12,8 @@ function since(h,range){if(range==="YTD"){const y=h[h.length-1][0].slice(0,4);le
 function perf(t){const h=D.hist[t];if(!h)return{};const n=h.length,c=h[n-1][1];return{price:c,d1:pc(c,h[n-2]?.[1]),d5:pc(c,h[n-6]?.[1]),m1:pc(c,h[since(h,"1M")][1]),ytd:pc(c,h[since(h,"YTD")][1])}}
 /* svg helpers */
 function line(pts,W,H,P,lo,hi,color,w=2,dash=""){if(pts.length<2)return"";const sx=i=>P.l+i*(W-P.l-P.r)/(pts.length-1),sy=v=>P.t+(hi-v)/(hi-lo||1)*(H-P.t-P.b);
- return`<path d="${pts.map((v,i)=>(i?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1)).join("")}" fill="none" style="stroke:${color}" stroke-width="${w}"${dash?` stroke-dasharray="${dash}"`:""} stroke-linejoin="round" stroke-linecap="round"/>`}
+ let pv=0;const dd=pts.map((v,i)=>{if(v==null||!isFinite(v)){pv=0;return""}const c=(pv?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1);pv=1;return c}).join("");if(!dd)return"";
+ return`<path d="${dd}" fill="none" style="stroke:${color}" stroke-width="${w}"${dash?` stroke-dasharray="${dash}"`:""} stroke-linejoin="round" stroke-linecap="round"/>`}
 function ticks(lo,hi,n=5){const s=(hi-lo)/n,m=Math.pow(10,Math.floor(Math.log10(s||1))),st=[1,2,2.5,5,10].map(x=>x*m).find(x=>x>=s)||s;const out=[];for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st)out.push(+v.toFixed(6));return out}
 function spark(h){const p=h.slice(-30).map(x=>x[1]),lo=Math.min(...p),hi=Math.max(...p),up=p[p.length-1]>=p[0];
  return`<svg viewBox="0 0 80 28" width="80" height="28">${line(p,80,28,{l:1,r:1,t:2,b:2},lo,hi,up?NAVY:INK,1.5)}</svg>`}
@@ -236,7 +237,7 @@ if(has("#ecal")&&D.earn){
  $("#esel").innerHTML=TS.map(t=>`<button role="tab" data-t="${t}" class="lgb">${t}${lg(t,"xs")}</button>`).join("");
  $("#esel").querySelectorAll("button").forEach(b=>b.onclick=()=>pick(b.dataset.t));
  function pick(t,scroll){cur=t;history.replaceState(null,"","?t="+t);cal();render();if(scroll)$("#s-edet").scrollIntoView({behavior:"smooth",block:"start"})}
- const marg=(q,k)=>q&&q[k]!=null&&q.revenue?q[k]/q.revenue*100:null,pctv=v=>v==null?'<span class="cap">n/a</span>':`<span class="num">${fmt(v,1)}%</span>`;
+ const marg=(q,k)=>{if(!q||q[k]==null||!q.revenue)return null;const v=q[k]/q.revenue*100;return isFinite(v)&&v<=100&&v>=(k=="gross"?0:-100)?v:null},pctv=v=>v==null?'<span class="cap">n/a</span>':`<span class="num">${fmt(v,1)}%</span>`;
  function kpi(k,v,sub,c){return`<div class="ek"><div class="k">${k}</div><div class="v">${v}${c?" "+c:""}</div><div class="cap">${sub||"&nbsp;"}</div></div>`}
  function bars(vals,labels,yf,H=220){const W=520,P={l:8,r:8,t:16,b:28},n=vals.length;if(!n)return'<div class="empty">No data.</div>';
   const mx=Math.max(0,...vals.filter(v=>v!=null)),mn=Math.min(0,...vals.filter(v=>v!=null)),sy=v=>P.t+(mx-v)/((mx-mn)||1)*(H-P.t-P.b),bw=(W-P.l-P.r)/n;
