@@ -572,3 +572,17 @@ table.tsy tr.tot td{font-weight:700;border-top:2px solid var(--line2)}table.tsy 
 table.tsy th button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:3px;padding:2px 0;border-radius:4px}
 table.tsy th button:hover{color:var(--blue)}table.tsy th button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 table.tsy th.on button{color:var(--blue)}table.tsy th .ar{font-size:9px;min-width:9px}table.tsy tfoot tr.tot td{border-top:2px solid var(--line2)}
+/* digest photos (SHOW_DIGEST_IMAGES) */
+.dhero{position:relative;margin:0;border-radius:12px;overflow:hidden;aspect-ratio:2/1;min-height:220px;background:#1C1F24;border:1px solid var(--line)}
+.dhero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.dhero figcaption{position:absolute;inset:auto 0 0 0;padding:64px var(--s5) var(--s4);background:linear-gradient(to top,rgba(10,14,22,.82),rgba(10,14,22,.45) 55%,transparent);color:#fff;display:flex;flex-direction:column;gap:4px}
+.dh-eb{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.dh-t{font-size:clamp(18px,2.2vw,26px);font-weight:700;line-height:1.25;max-width:46em}
+.dh-c,.dh-c a{font-size:11px;color:rgba(255,255,255,.72);text-decoration:none}.dh-c a:hover{text-decoration:underline}
+.dimg{margin:calc(-1 * var(--s5)) calc(-1 * var(--s5)) var(--s4);border-radius:12px 12px 0 0;overflow:hidden}
+.dimg img{display:block;width:100%;aspect-ratio:2/1;object-fit:cover;object-position:center 28%;background:var(--grey)}
+.dimg figcaption{font-size:11px;color:#6B7280;padding:6px var(--s5) 0}.dimg figcaption a{color:inherit;text-decoration:none}.dimg figcaption a:hover{text-decoration:underline}
+@media(max-width:640px){.dhero{aspect-ratio:16/10}.dimg img{aspect-ratio:16/10}.dhero figcaption{padding:48px var(--s4) var(--s3)}.dimg{margin:calc(-1 * var(--s4)) calc(-1 * var(--s4)) var(--s3)}.dimg figcaption{padding:6px var(--s4) 0}}
+/* footer breathing room */
+.shell>main{padding-bottom:48px!important}.sb{padding-bottom:var(--s6)!important}
+@media(max-width:640px){.shell>main{padding-bottom:40px!important}}
