@@ -617,3 +617,53 @@ table.tsy th.on button{color:var(--blue)}table.tsy th .ar{font-size:9px;min-widt
 #s-heads .hb{height:100%}
 @media(max-width:1100px){#s-ecal .ecal,#s-heads .hgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:640px){#s-heads .hgrid{grid-template-columns:1fr;grid-auto-rows:auto;gap:var(--s5)}#s-ecal .ecal{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Nov 9 2026: merged Top line card (News & Events) + next event highlight in the calendar */
+.bul .tls{font-size:var(--t-xs);font-weight:600;color:var(--blue);white-space:nowrap;margin-left:2px}
+.cal tr.nxt td{background:rgba(41,98,255,.06)}.cal tr.nxt td:first-child{box-shadow:inset 3px 0 0 var(--blue)}
+.nxb{display:inline-block;margin-left:var(--s2);padding:1px 6px;border-radius:999px;background:var(--blue);color:#fff;font-size:var(--t-2xs);letter-spacing:.04em}
+/* Nov 9 2026 (round i): consolidation */
+.bul .tlw{font-size:var(--t-sm);color:var(--ink);opacity:.72;line-height:1.5;margin-top:2px}
+.rcol{align-content:start;min-width:0}
+#s-heads .hgrid{grid-auto-rows:auto}
+#s-heads .hl .hs{font-size:var(--t-sm);line-height:1.45;color:var(--ink);opacity:.75}
+.hmore summary{cursor:pointer;font-size:var(--t-sm);font-weight:600;color:var(--blue);list-style:none}.hmore summary::-webkit-details-marker{display:none}
+.hmore[open] summary{margin-bottom:var(--s3)}.hmore .hl+.hl{margin-top:var(--s3)}
+#s-heads .hqk{margin-top:var(--s2);padding-top:var(--s4);border-top:1px dashed var(--grey)}
+.hq{display:flex;flex-direction:column;gap:4px}.hq+.hq{margin-top:var(--s3)}
+.hq .hqt{font-size:var(--t-sm);line-height:1.5}
+.ansel{margin-top:var(--s4);padding-top:var(--s3);border-top:1px solid var(--grey)}
+.ansel .anr{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s2) var(--s3)}.ansel .lgn{display:inline-flex;align-items:center;gap:6px}
+#bars .bar.on .tk{color:var(--blue);font-weight:700}
+.snap{grid-template-columns:repeat(5,1fr)}
+@media(max-width:1100px){.snap{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.snap{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Nov 9 2026 (round j) */
+/* Trending headlines: balanced masonry columns, no empty gaps */
+#s-heads .hgrid.mas{display:flex;align-items:flex-start;gap:var(--s6)}
+#s-heads .hcol{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:var(--s5)}
+#s-heads .hcol .hb{height:auto}
+#s-heads .hqk{margin-top:0;padding-top:var(--s3);font-size:var(--t-2xs)}
+#s-heads .hq{gap:2px}#s-heads .hq .hqn{font-size:var(--t-sm)}#s-heads .hq .hqt{font-size:var(--t-xs);line-height:1.5;opacity:.85}
+@media(max-width:640px){#s-heads .hgrid.mas{gap:var(--s5)}}
+/* Hero: lead story headline, dek, source; tiny photo credit */
+.dhero .dh-t{color:#fff;text-decoration:none}.dhero .dh-t:hover{text-decoration:underline}
+.dh-d{font-size:var(--t-sm);line-height:1.45;color:rgba(255,255,255,.86);max-width:52em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dh-m,.dh-m a{font-size:12px;font-weight:600;color:#fff;text-decoration:none;opacity:.9}.dh-m a:hover{text-decoration:underline}
+.dhero>.dh-c{position:absolute;top:10px;right:10px;max-width:70%;padding:2px 8px;border-radius:999px;background:rgba(10,14,22,.45);font-size:10px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dhero>.dh-c,.dhero>.dh-c a{font-size:10px;color:rgba(255,255,255,.75)}
+.dhero.noimg{aspect-ratio:auto;min-height:0}.dhero.noimg figcaption{position:static;background:none;padding:var(--s6) var(--s5)}
+@media(max-width:640px){.dh-d{-webkit-line-clamp:3}.dhero>.dh-c{max-width:calc(100% - 20px)}}
+/* Top line full width now that the tall sign-up card is gone */
+.toprow.solo{grid-template-columns:1fr}
+/* Sign-up: slim full-width banner */
+.dgb{display:flex;align-items:center;gap:var(--s4) var(--s5);flex-wrap:wrap;padding:var(--s4) var(--s5)!important}
+.dgb .dgb-t{flex:1 1 280px;display:flex;flex-direction:column;gap:2px;font-size:var(--t-sm);line-height:1.4;color:var(--ink)}.dgb .dgb-t b{font-size:var(--t-body)}
+.dgb .dg-f{flex:0 1 440px;margin:0;display:flex;flex-direction:column}.dgb .dg-g{height:44px}.dgb .dg-g input,.dgb .dg-g button{height:36px}
+.dgb .msg{margin-top:4px;font-size:var(--t-xs);opacity:.7}
+@media(max-width:640px){.dgb .dg-f{flex-basis:100%}}
+footer.card.sf{margin:0;padding:var(--pad-card)}
+#s-heads .hq .hqt{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+#s-heads .hq .hqt.open{display:block;-webkit-line-clamp:unset}
+#s-heads .hq .hqn .cap{display:block;font-size:var(--t-2xs)}
+@media(max-width:640px){.dhero{aspect-ratio:auto;min-height:0}.dhero img{position:relative;inset:auto;display:block;height:auto;aspect-ratio:16/9}
+ .dhero figcaption{position:static;background:#1C1F24;padding:var(--s4)}.dh-d{-webkit-line-clamp:4}}

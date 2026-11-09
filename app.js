@@ -18,21 +18,22 @@ const echip=s=>s==null?"":`<span class="ech ${s>=0?"b":"m"}">${s>=0?"Beat":"Miss
 const ql=d=>{const m=+d.slice(5,7);return"Q"+Math.ceil(m/3)+" '"+d.slice(2,4)};
 const eSurp=t=>{const h=lastH(t);return h&&h.eps!=null&&h.est!=null?h.surprise:null};
 function eNext(t){const x=ER[t];if(x&&x.next)return x.next;const e=(D.tick[t]||{}).earnings;return e?{date:e.date,time:"",est:e.eps}:null}
-function ebars(vals,labels,yf,W=520,H=210){const P={l:6,r:6,t:18,b:26},n=vals.length;if(!n||!vals.some(v=>v!=null))return'<div class="empty">No data.</div>';
+const EW=()=>innerWidth<640?Math.max(300,Math.min(420,innerWidth-80)):520;
+function ebars(vals,labels,yf,W=EW(),H=210){const P={l:4,r:4,t:22,b:26},n=vals.length;if(!n||!vals.some(v=>v!=null))return'<div class="empty">No data.</div>';
  const mx=Math.max(0,...vals.filter(v=>v!=null)),mn=Math.min(0,...vals.filter(v=>v!=null)),sy=v=>P.t+(mx-v)/((mx-mn)||1)*(H-P.t-P.b),bw=(W-P.l-P.r)/n;
  let g=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(0)}" y2="${sy(0)}" style="stroke:var(--ink)" stroke-opacity=".25"/>`;
  vals.forEach((v,i)=>{const x=P.l+i*bw+bw*.18,w=bw*.64;g+=`<text x="${x+w/2}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${labels[i]}</text>`;
   if(v==null)return;const y0=sy(0),y1=sy(v);g+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${w}" height="${Math.max(1,Math.abs(y1-y0))}" rx="3" style="fill:${v<0?"var(--ink)":"var(--blue)"}"/>`;
-  if(i==n-1)g+=`<text x="${x+w/2}" y="${v<0?y1+14:y1-5}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">${yf(v)}</text>`});
+  g+=`<text x="${x+w/2}" y="${v<0?y1+14:y1-6}" font-size="${i==n-1?12:11}" font-weight="${i==n-1?700:500}" text-anchor="middle" style="fill:var(--ink)${i==n-1?"":";opacity:.8"}">${yf(v,innerWidth<640)}</text>`});
  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`}
-function eepsChart(hs,W=520,H=210){if(!hs.length)return'<div class="empty">No EPS history.</div>';const P={l:6,r:6,t:18,b:26},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
+function eepsChart(hs,W=EW(),H=210){if(!hs.length)return'<div class="empty">No EPS history.</div>';const P={l:6,r:6,t:18,b:26},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
  let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${ql(new Date(new Date(z.date).getTime()-50*864e5).toISOString().slice(0,10))}</text>`;
   if(z.est!=null)g+=`<circle cx="${cx}" cy="${sy(z.est)}" r="5" fill="none" style="stroke:var(--ink)" stroke-width="1.5"/>`;
   if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="5" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/>`;
   if(i==hs.length-1&&z.eps!=null)g+=`<text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+20:sy(Math.max(z.eps,z.est??z.eps))-10}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="legend"><span class="lgi"><i style="background:var(--blue)"></i>Beat</span> <span class="lgi"><i style="background:var(--ink)"></i>Miss</span> <span class="lgi"><i class="o"></i>Estimate</span></div>`}
 function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${lg(t,"s")}Latest earnings: ${t}</span><span class="cap r">${c}</span></h2>`;if(!x)return hd("")+`<div class="empty">${(D.tick[t]||{}).fund?"Fund or ETF, no quarterly earnings reports.":"No earnings data."}</div>`;
- const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{};const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=v=>{const m=MONEY(v);return cs&&m!="n/a"?m.replace("$",cs):m};
+ const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{};const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=(v,c)=>{const a=Math.abs(v),m=v==null?"n/a":!c?MONEY(v):a>=1e12?"$"+fmt(v/1e12,2)+"T":a>=1e9?"$"+fmt(v/1e9,1)+"B":"$"+fmt(v/1e6,0)+"M";return cs&&m!="n/a"?m.replace("$",cs):m};
  const srcQ=q&&src.revenue!=null&&src.period&&src.period.slice(0,7)==q.period.slice(0,7);/* latest quarter: use the sourced release figures so actual, estimate and year-ago share one basis */
  const rev=srcQ?src.revenue:q&&q.revenue;
  const yo=q&&qs.find(z=>z.period.slice(0,4)==String(+q.period.slice(0,4)-1)&&z.period.slice(5,7)==q.period.slice(5,7)),prev=srcQ&&src.revenue_prior_year?src.revenue_prior_year:(yo?yo.revenue:src.revenue_prior_year),yoy=rev&&prev?(rev/prev-1)*100:null;
@@ -82,7 +83,7 @@ document.addEventListener("pointercancel",e=>{const svg=e.target.closest&&e.targ
 document.addEventListener("pointerup",e=>{if(e.pointerType!="mouse"){const svg=e.target.closest&&e.target.closest("svg[data-cid]");if(svg)setTimeout(()=>hvHide(svg),1500)}});
 /* render */
 if(has("#asof"))$("#asof").textContent="Closes as of "+md(D.lastbar)+" · updated "+D.asof.replace(/^\w+,? /,"").replace(/, \d{4},/,",");if(has("#topline")){$("#topline").textContent=D.topline;$("#newsdate").textContent="From today's digest"}
-if(has("#snap"))$("#snap").innerHTML=D.snap.map(s=>{const h=D.hist[s.sym];if(!h)return"";const n=h.length,v=h[n-1][1],ch=s.sym==="^TNX"?(v-h[n-2][1])*100:pc(v,h[n-2][1]);
+if(has("#snap"))$("#snap").innerHTML=D.snap.filter(s=>s.sym!=="^TNX").map(s=>{const h=D.hist[s.sym];if(!h)return"";const n=h.length,v=h[n-1][1],ch=s.sym==="^TNX"?(v-h[n-2][1])*100:pc(v,h[n-2][1]);
  const cs=s.sym==="^TNX"?`<span class="chg ${ch>=0?"up":"dn"} num">${ch>=0?"+":""}${ch.toFixed(0)} bp</span>`:`<span class="chg num">${fp(ch)}</span>`;
  return`<button class="sc sct" data-sym="${esc(s.sym)}" aria-controls="snp" title="Open chart"><div class="n">${esc(s.name)}<span class="lv">Chart ›</span></div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></button>`}).join("");
 const SHORTN={JPM:"JPMorgan",PSUS:"Pershing Sq USA",SPY:"S&P 500",PS:"Pershing Square"};
@@ -103,7 +104,7 @@ function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>
 function fitWL(){const w=$("#wl"),tw=w.closest(".tw");if(!tw)return;w.classList.remove("cmp");if(tw.scrollWidth>tw.clientWidth+1)w.classList.add("cmp")}
 addEventListener("resize",()=>{if(has("#wl"))fitWL()});
 let dRange="3M",dLive=false;  /* History by default; Live (TradingView, delayed) is an optional tab */
-function select(t,scroll){sel=t;if(window.BC_ecal)BC_ecal();if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
+function select(t,scroll){sel=t;if(window.BC_ecal)BC_ecal();if(window.BC_ansel)BC_ansel();if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
 function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dRange),seg=h.slice(i0),pts=seg.map(z=>z[1]);
  const room=x.target?pc(x.target,p.price):null,rp=x.rating?`<span class="pill ${x.rating=="Hold"?"h":x.rating=="Sell"?"s":""}">${x.rating}</span>`:'<span class="cap">No coverage</span>';
  const e=x.earnings;const rng=pc(pts[pts.length-1],pts[0]);
@@ -113,11 +114,7 @@ function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dR
  ${dLive?`<div class="tvw" id="dtv"></div><div class="cap" style="margin-top:var(--s2)">Live via TradingView.</div>`:""}
  <div style="${dLive?"display:none":""}"><div class="chart" id="dchart">${axisChart([{pts,color:NAVY,w:2,label:1}],{W:Math.max(300,($("#detail").clientWidth||800)-48),H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>"$"+fmt(v,(Math.max(...pts)-Math.min(...pts))>=8?0:2),area:1,tip:(i,S)=>`<div class="tv num">$${fmt(S[0].pts[i])}</div>`,extra:x.target?[x.target]:[],hlines:x.target?[{v:x.target,color:INK,label:"Avg target $"+fmt(x.target)}]:[]})}</div>
 ${asofNote()}</div>
- <div class="stats"><div><div class="k">Analysts</div><div class="v">${rp}</div>${x.n?`<div class="cap">${x.n} analysts</div>`:""}</div>
- <div><div class="k">Avg target</div><div class="v num">${x.target?"$"+fmt(x.target):"n/a"}</div>${x.low?`<div class="cap num">Range $${fmt(x.low,0)} to $${fmt(x.high,0)}</div>`:""}</div>
- <div><div class="k">Room to target</div><div class="v num">${room==null?"n/a":fp(room,1)}</div></div>
- <div><div class="k">Next report</div><div class="v">${(()=>{const n=eNext(t);return n?wd(n.date):x.fund?"n/a (fund)":"Not set"})()}</div>${(()=>{const n=eNext(t);return n&&n.est!=null?`<div class="cap num">EPS est. $${fmt(n.est)}${n.time?" · "+esc(n.time):""}</div>`:""})()}</div></div>
- <div class="sub2">Leaders on the record</div><div class="items">${lds||'<div class="empty">No new commentary today.</div>'}</div>`;
+`;
  if(has("#s-earnd")){const ec=$("#s-earnd");ec.innerHTML=earnBlock(t);ec.style.display=ER[t]?"":"none"}
  $("#dr").querySelectorAll("button").forEach(b=>b.onclick=()=>{dRange=b.textContent;renderDetail()});
  $("#dlv").querySelectorAll("button").forEach((b,k)=>b.onclick=()=>{dLive=k==1;renderDetail()});if(dLive)tvEmbed($("#dtv"),TV[t])}
@@ -137,13 +134,25 @@ ${asofNote()}</div>
   if(bl.length)n.push(`${bl.join(", ")} ${bl.length==1?"trades":"trade"} below even the lowest analyst target.`);
   $("#anotes").innerHTML=(n.length?`<p><b>Worth noting:</b> ${esc(n.join(" "))}</p>`:"")+`<div class="cap">No targets for ${esc(D.uncovered.join(", "))}. Consensus targets via Yahoo Finance (morning pull). P/E is in the holdings table.</div>`}
  let q=0;BCL.push((t,p)=>{if(!(t in LP)||LP[t]===p)return;LP[t]=p;if(!q){q=1;requestAnimationFrame(()=>{q=0;draw()})}});
- draw()})();
+ draw();
+ /* selected company's consensus (moved here from the detail panel) */
+ window.BC_ansel=()=>{const t=sel,x=D.tick[t]||{};Object.entries(el).forEach(([k,d])=>d.classList.toggle("on",k==t));
+  if(!x.target){$("#ansel").innerHTML=`<div class="cap"><b>${esc(t||"")}</b> ${x.fund?"Fund or ETF, no analyst targets.":"No analyst coverage."}</div>`;return}
+  const room=pc(x.target,LP[t]),rp=x.rating?`<span class="pill ${x.rating=="Hold"?"h":x.rating=="Sell"?"s":""}">${x.rating}</span>`:"";
+  $("#ansel").innerHTML=`<div class="anr"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${rp}<span class="cap">${x.n?x.n+" analysts · ":""}Avg target <b class="num">$${fmt(x.target)}</b>${x.low?` · range $${fmt(x.low,0)} to $${fmt(x.high,0)}`:""} · <span class="num">${fp(room,1)}</span> to target</span></div>`};
+ if(sel)BC_ansel()})();
 /* calendar */
-const EARN=D.cal.filter(c=>c.kind=="Earnings"),MAC=D.cal.filter(c=>c.kind!="Earnings");
-const calRow=c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="portfolio.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`;
+const EARN=D.cal.filter(c=>c.kind=="Earnings"),MAC=D.cal.filter(c=>c.kind!="Earnings"),NEXTEV=D.cal.slice().sort((a,b)=>a.date.localeCompare(b.date)).find(c=>c.date>=(D.run||D.lastbar));
+const nx=c=>c===NEXTEV||c._nx?' class="nxt"':"",nxt=c=>c===NEXTEV||c._nx?'<span class="nxb">Next up</span>':"";
+const calRow=c=>`<tr${nx(c)}><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}${nxt(c)}</div><div style="font-weight:600">${c.t?`<a href="portfolio.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`;
 if(has("#macrocal")){if(MAC.length)$("#macrocal tbody").innerHTML=MAC.map(calRow).join("");else $("#macrocal").remove()}
-if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="portfolio.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`).join(""):'<tr><td class="empty">Nothing scheduled.</td></tr>';
-if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p style="margin:${has("#macrocal")?16:0}px 0 0"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
+if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr${nx(c)}><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}${nxt(c)}</div><div style="font-weight:600">${c.t?`<a href="portfolio.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`).join(""):'<tr><td class="empty">Nothing scheduled.</td></tr>';
+/* one calendar (News & Events): earnings + macro in date order; a time written in the title, e.g. "(8:30 AM ET)", fills the time cell */
+const TRX=/\s*\((\d{1,2}(?::\d{2})?\s?[AP]\.?M\.?(?:\s?ET)?)\)/i;
+const calT=c=>{if(c.time)return{time:c.time,title:c.title};const m=String(c.title||"").match(TRX);if(!m)return{time:c.kind=="Earnings"?"Time TBC":"",title:c.title};
+ const multi=/;/.test(c.title);return{time:m[1].replace(/\s?ET$/i,"")+" ET",title:multi?c.title:c.title.replace(TRX,"")}};
+if(has("#calall"))$("#calall tbody").innerHTML=D.cal.length?D.cal.slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.kind=="Earnings")-(b.kind=="Earnings")).map(c=>{const x=calT(c);return calRow(Object.assign({},c,{time:x.time||" ",title:x.title,_nx:c===NEXTEV}))}).join(""):'<tr><td class="empty">Nothing scheduled in the next 14 days.</td></tr>';
+if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p style="margin:${has("#macrocal")||has("#calall")?16:0}px 0 0"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
 /* comparison */
 let cRange="3M";const on=new Set(["SPY","WL"]);const HOLD=D.tickers.filter(t=>t!="SPY"&&D.hist[t]);let wlNote="";const keys=["WL",...D.tickers.filter(t=>D.hist[t])];const col=k=>k=="WL"?NAVY:k=="SPY"?INK:INK;const DASH=["","6 4","2 3","8 3 2 3"];const dsh=k=>k=="WL"||k=="SPY"?"":DASH[D.tickers.indexOf(k)%4];
 function cmp(){const sh=D.hist.SPY,i0=since(sh,cRange),dates=sh.slice(i0).map(z=>z[0]);
@@ -180,8 +189,8 @@ function tvEmbed(w,symbol,o={}){if(!w)return;w.innerHTML='<div class="tradingvie
  w.firstChild.appendChild(sc)}
 let tvDone=false;function loadTV(){if(tvDone)return;tvDone=true;tvEmbed($("#tvw"),"US10Y",{interval:"5",range:"1D"})}
 const asofNote=()=>"";
-if(has("#ustab")){$("#ustab").querySelectorAll("button").forEach((b,j)=>b.onclick=()=>{$("#ustab").querySelectorAll("button").forEach((x,k)=>x.classList.toggle("on",k==j));$("#ustlive").style.display=j?"none":"";$("#usthist").style.display=j?"":"none";if(j)renderUST();else loadTV()});
-if(location.hash=="#hist")$("#ustab button:last-child").click();else loadTV()}
+if(has("#ustab")){/* History is the default (live data is delayed); Live is the second tab */const ub=[...$("#ustab").querySelectorAll("button")],uSet=live=>{ub.forEach(x=>x.classList.toggle("on",(x.textContent=="Live")==live));$("#ustlive").style.display=live?"":"none";$("#usthist").style.display=live?"none":"";if(live)loadTV();else renderUST()};
+ub.forEach(b=>b.onclick=()=>uSet(b.textContent=="Live"));uSet(location.hash=="#live")}
 /* subscribe: posts to a Google Form (benitescapital@gmail.com) that feeds the "Benites Capital Digest Signups" Google Sheet */
 const SUB_ENDPOINT="https://docs.google.com/forms/d/e/1FAIpQLSfui5Vi0ZWQRgHUaAv1l45w9y2qRbA8iajkcLYAe2DqajKfSw/formResponse",SUB_FIELD="entry.75554105";
 document.querySelectorAll("form[data-sub]").forEach(f=>f.onsubmit=e=>{e.preventDefault();const em=f.email.value.trim(),m=f.querySelector(".msg");
@@ -204,7 +213,8 @@ function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML=
 if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
 document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 /* old anchors on news.html */
-if(has("#s-earn")&&["#s-cal","#s-up","#s-feed"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"?"#s-big":"#s-earn").scrollIntoView(),50);
+if(has("#s-cal")&&["#s-earn","#s-macro","#s-up","#s-feed","#s-big"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"||location.hash=="#s-big"?"#s-top":"#s-cal").scrollIntoView(),50);
+if(has("#s-cal")&&["#s-stock","#s-lead"].includes(location.hash))location.replace("portfolio.html#s-heads");
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
 if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 var(--s4)">${lg(t,"s")}<a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
@@ -229,12 +239,24 @@ if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it
  else if(pgn=="calendar"){const now=D.lastbar,lim=new Date(now+"T12:00:00");lim.setDate(lim.getDate()+7);const k=lim.toISOString().slice(0,10);let ev=D.cal.filter(c=>c.date>=now&&c.date<=k);if(!ev.length)ev=D.cal.slice(0,3);
   L=ev.slice(0,3).map(c=>`<b>${wd(c.date)}</b>: ${esc(c.kind=="Earnings"?(c.t||c.title)+" earnings":c.title)}${c.time?" ("+esc(c.time.toLowerCase())+")":""}.`);
   if(D.macro_note)L.push("Macro: "+esc(D.macro_note));if(!L.length)L=["Nothing scheduled in the next 14 days."];S.textContent="Earnings dates via Yahoo Finance; macro from today's digest."}
- else if(pgn=="news"){const b=D.big[0],ev=D.cal.find(c=>c.date>=D.lastbar),ld=D.leaders[0];
-  if(b)L.push(`Top story: <b>${esc(b.headline)}.</b> ${esc(b.why)}`);
-  if(ev)L.push(`Next event: <b>${wd(ev.date)}</b>, ${esc(ev.kind=="Earnings"?(ev.t||ev.title)+" earnings":ev.title)}${ev.time?" ("+esc(ev.time.toLowerCase())+")":""}.`);
-  const b2=D.big[1];if(b2)L.push(`Also: <b>${esc(b2.headline)}.</b>`);else if(ld)L.push(`${esc(ld.name)}: ${esc(ld.text)}`);
-  S.innerHTML=(b?`<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a> · `:"")+"from today's digest"}
- $("#sumt").outerHTML=`<ul class="bul" id="sumt">${L.slice(0,4).map(x=>`<li>${x}</li>`).join("")}</ul>`})();
+ else if(pgn=="news"){/* Top line (merged with the old What matters now): digest bullets, each linked to its source story; next event lives in the calendar below */
+  const STOP=new Set("about after ahead also amid back been from have into last more next over said says than that their them then they this were what when which while will with would week weeks".split(" ")),
+   wds=t=>new Set(String(t||"").toLowerCase().replace(/[^a-z0-9$% ]/g," ").split(/\s+/).filter(w=>w.length>3&&!STOP.has(w))),
+   ov=(A,B)=>{let n=0;A.forEach(w=>{if(B.has(w))n++});return n};
+  const pool=[...D.big.map(x=>({h:x.headline,t:x.headline+" "+x.why,source:x.source,url:x.url})),
+   ...D.tickers.flatMap(t=>(D.news[t]||[]).slice(0,3).map(x=>({h:x.headline,t:x.headline+" "+(x.why||x.summary||"")+" "+((D.tick[t]||{}).name||""),source:x.source,url:x.url})))].filter(x=>x.url);
+  let pts=Array.isArray(D.topline_points)&&D.topline_points.length?D.topline_points:String(D.topline||"").split(/(?<=[.!?])\s+(?=[A-Z"\u201C])/).map(x=>x.trim()).filter(Boolean);
+  if(!pts.length)pts=D.big.slice(0,3).map(x=>x.headline+".");
+  const used=new Set(),BIG=new Set(D.big.map(x=>x.url)),WHY=Object.fromEntries(D.big.map(x=>[x.url,x.why]));
+  const li=(lead,src,why)=>`<span class="tll">${lead}</span>${src?` <a class="tls" href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.source)}</a>`:""}${why?`<div class="tlw">${esc(why)}</div>`:""}`;
+  const HERO=document.querySelector(".dhero")?.dataset.lead||"";
+  L=pts.slice(0,4).map(p=>{const W=wds(p);let best=null,bs=1;pool.forEach(x=>{if(used.has(x.url))return;const sc=ov(W,wds(x.t));if(sc>bs){bs=sc;best=x}});if(best)used.add(best.url);
+   if(best&&HERO&&best.url==HERO)return null;/* already the lead story in the photo above */
+   return li(esc(p),best,best&&BIG.has(best.url)?WHY[best.url]:"")}).filter(Boolean);
+  /* the rest of Big picture: stories the digest top line did not cover */
+  D.big.filter(x=>!used.has(x.url)).forEach(x=>L.push(li(esc(x.headline)+".",x,x.why)));
+  S.innerHTML='From today\'s digest. <a href="#s-cal">Next event in the calendar</a>'}
+ $("#sumt").outerHTML=`<ul class="bul" id="sumt">${L.slice(0,8).map(x=>`<li>${x}</li>`).join("")}</ul>`})();
 /* report calendar tiles (Portfolio): latest beat/miss + next report; click selects the holding */
 if(has("#ecal")&&D.earn){const TS=D.tickers.filter(t=>ER[t]),run=D.run||D.lastbar,dd=(a,b)=>(new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5;
  const recent=t=>{const h=lastH(t);return h&&dd(h.date,run)<=45&&dd(h.date,run)>=-1};
@@ -245,8 +267,22 @@ if(has("#ecal")&&D.earn){const TS=D.tickers.filter(t=>ER[t]),run=D.run||D.lastba
   $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>{select(b.dataset.t);history.replaceState(null,"","#"+b.dataset.t);$("#s-earnd").style.display!="none"&&$("#s-earnd").scrollIntoView({behavior:"smooth",block:"start"})})};
  BC_ecal()}
 /* trending headlines per holding (top of Portfolio), from today's digest */
-if(has("#heads")){const ts=D.tickers.filter(t=>(D.news[t]||[]).length).sort((a,b)=>Math.abs(P[b]?.d1??0)-Math.abs(P[a]?.d1??0));
- $("#heads").innerHTML=ts.map(t=>`<div class="hb"><div class="hbh">${lg(t,"s")}<a href="#${t}" data-t="${t}" class="hbt">${t}</a><span class="cap hbn">${esc(SHORTN[t]||D.tick[t]?.name||"")}</span><span class="chg num">${fp(P[t]?.d1)}</span></div>${D.news[t].slice(0,3).map(i=>`<a class="hl" href="${esc(i.url)}" target="_blank" rel="noopener"><span class="h">${esc(i.headline)}</span><span class="cap">${esc(i.source)}</span></a>`).join("")}</div>`).join("")||'<div class="empty">No holding-specific headlines in today\'s digest.</div>';
+if(has("#heads")){/* Nov 9 2026: Stock news and Leaders on the record moved here from News & Events; each quote shows once, under its company */
+ const LQ={};D.leaders.forEach(l=>{const ts=l.tickers||[],k=ts.find(t=>(D.news[t]||[]).length)||ts[0];if(k)(LQ[k]=LQ[k]||[]).push(l)});
+ const ts=D.tickers.filter(t=>(D.news[t]||[]).length||LQ[t]).sort((a,b)=>Math.abs(P[b]?.d1??0)-Math.abs(P[a]?.d1??0));
+ const hl=i=>`<a class="hl" href="${esc(i.url)}" target="_blank" rel="noopener"><span class="h">${esc(i.headline)}</span>${i.summary?`<span class="hs">${esc(i.summary)}</span>`:""}<span class="cap">${esc(i.source)}</span></a>`;
+ const q=l=>`<div class="hq"><div class="hqn"><b>${esc(l.name)}</b> <span class="cap">${esc(l.title||"")}</span></div><div class="hqt" tabindex="0" role="button" aria-expanded="false" title="Show full quote">${esc(l.text)}</div><div class="cap">${esc(l.format||"")}${l.date?" · "+esc(l.date):""} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`;
+ const boxes=ts.map(t=>{const N=D.news[t]||[];return`<div class="hb"><div class="hbh">${lg(t,"s")}<a href="#${t}" data-t="${t}" class="hbt">${t}</a><span class="cap hbn">${esc(SHORTN[t]||D.tick[t]?.name||"")}</span><span class="chg num">${fp(P[t]?.d1)}</span></div>${N.slice(0,3).map(hl).join("")}${N.length>3?`<details class="hmore"><summary>${N.length-3} more</summary>${N.slice(3).map(hl).join("")}</details>`:""}${LQ[t]?`<div class="k2 hqk">On the record</div>${q(LQ[t][0])}${LQ[t].length>1?`<details class="hmore hqm"><summary>${LQ[t].length-1} more from ${esc(LQ[t].slice(1).map(l=>l.name.split(" ").pop()).join(", "))}</summary>${LQ[t].slice(1).map(q).join("")}</details>`:""}`:""}</div>`}).join("")||'<div class="empty">No holding-specific headlines in today\'s digest.</div>';
+ const H=$("#heads");let lastN=0;
+ const pack=()=>{const n=innerWidth>=1100?4:innerWidth>=640?2:1;const items=[...H.querySelectorAll(".hb")];if(!items.length){H.innerHTML=boxes;return}
+  H.classList.add("mas");const cols=Array.from({length:n},()=>{const c=document.createElement("div");c.className="hcol";return c});
+  H.replaceChildren(...cols);const hts=new Array(n).fill(0);
+  /* measure at column width, then drop each box (already sorted by move size) into the shortest column */
+  items.forEach(el=>{cols[0].appendChild(el)});const sz=items.map(el=>el.getBoundingClientRect().height);
+  /* top row = the n biggest movers in order; the rest go tallest-first into the shortest column so columns end level */
+  items.slice(0,n).forEach((el,i)=>{cols[i].appendChild(el);hts[i]+=sz[i]+24});
+  items.map((el,i)=>[el,sz[i]]).slice(n).sort((a,b)=>b[1]-a[1]).forEach(([el,h])=>{const k=hts.indexOf(Math.min(...hts));cols[k].appendChild(el);hts[k]+=h+24});lastN=n};
+ H.innerHTML=boxes;H.querySelectorAll(".hqt").forEach(q=>{const tg=()=>{const o=q.classList.toggle("open");q.setAttribute("aria-expanded",o);pack()};q.onclick=tg;q.onkeydown=e=>{if(e.key=="Enter"||e.key==" "){e.preventDefault();tg()}}});H.querySelectorAll("details").forEach(d=>d.addEventListener("toggle",pack));pack();let rzh;addEventListener("resize",()=>{clearTimeout(rzh);rzh=setTimeout(pack,150)});
  $("#heads").querySelectorAll(".hbt").forEach(a=>a.onclick=e=>{e.preventDefault();select(a.dataset.t,true);if(innerWidth>=1100)$("#s-port").scrollIntoView({behavior:"smooth",block:"start"})})}
 /* old homepage deep links (index.html#NVDA was Portfolio until Nov 9 2026) -> portfolio.html#NVDA */
 if(document.body.dataset.page=="news"){const tk=()=>{if(D.tickers.includes(decodeURIComponent(location.hash.slice(1)).toUpperCase()))location.replace("portfolio.html"+location.hash.toUpperCase())};tk();addEventListener("hashchange",tk)}
