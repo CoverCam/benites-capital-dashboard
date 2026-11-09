@@ -10,6 +10,42 @@ const wd=s=>new Date(s+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",
 function back(h,days){const end=new Date(h[h.length-1][0]);const st=new Date(end);st.setDate(st.getDate()-days);const k=st.toISOString().slice(0,10);let i=h.findIndex(p=>p[0]>=k);return i<0?0:i}
 function since(h,range){if(range==="YTD"){const y=h[h.length-1][0].slice(0,4);let i=h.findIndex(p=>p[0]>=y+"-01-01");return Math.max(0,i-1)}return back(h,{"1M":30,"3M":91,"6M":182,"1Y":365}[range])}
 function perf(t){const h=D.hist[t];if(!h)return{};const n=h.length,c=h[n-1][1];return{price:c,d1:pc(c,h[n-2]?.[1]),d5:pc(c,h[n-6]?.[1]),m1:pc(c,h[since(h,"1M")][1]),ytd:pc(c,h[since(h,"YTD")][1])}}
+/* earnings, merged into Portfolio: latest report per holding from D.earn (Yahoo Finance + sourced overrides) */
+const ER=D.earn||{};
+const MONEY=v=>v==null?"n/a":Math.abs(v)>=1e12?"$"+fmt(v/1e12,2)+"T":(Math.abs(v)>=1e9?"$"+fmt(v/1e9,2)+"B":"$"+fmt(v/1e6,0)+"M");
+const lastH=t=>ER[t]&&ER[t].history.length?ER[t].history.at(-1):null;
+const echip=s=>s==null?"":`<span class="ech ${s>=0?"b":"m"}">${s>=0?"Beat":"Miss"}</span>`;
+const ql=d=>{const m=+d.slice(5,7);return"Q"+Math.ceil(m/3)+" '"+d.slice(2,4)};
+const eSurp=t=>{const h=lastH(t);return h&&h.eps!=null&&h.est!=null?h.surprise:null};
+function eNext(t){const x=ER[t];if(x&&x.next)return x.next;const e=(D.tick[t]||{}).earnings;return e?{date:e.date,time:"",est:e.eps}:null}
+function ebars(vals,labels,yf,W=520,H=210){const P={l:6,r:6,t:18,b:26},n=vals.length;if(!n||!vals.some(v=>v!=null))return'<div class="empty">No data.</div>';
+ const mx=Math.max(0,...vals.filter(v=>v!=null)),mn=Math.min(0,...vals.filter(v=>v!=null)),sy=v=>P.t+(mx-v)/((mx-mn)||1)*(H-P.t-P.b),bw=(W-P.l-P.r)/n;
+ let g=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(0)}" y2="${sy(0)}" style="stroke:var(--ink)" stroke-opacity=".25"/>`;
+ vals.forEach((v,i)=>{const x=P.l+i*bw+bw*.18,w=bw*.64;g+=`<text x="${x+w/2}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${labels[i]}</text>`;
+  if(v==null)return;const y0=sy(0),y1=sy(v);g+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${w}" height="${Math.max(1,Math.abs(y1-y0))}" rx="3" style="fill:${v<0?"var(--ink)":"var(--blue)"}"/>`;
+  if(i==n-1)g+=`<text x="${x+w/2}" y="${v<0?y1+14:y1-5}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">${yf(v)}</text>`});
+ return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`}
+function eepsChart(hs,W=520,H=210){if(!hs.length)return'<div class="empty">No EPS history.</div>';const P={l:6,r:6,t:18,b:26},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
+ let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${ql(new Date(new Date(z.date).getTime()-50*864e5).toISOString().slice(0,10))}</text>`;
+  if(z.est!=null)g+=`<circle cx="${cx}" cy="${sy(z.est)}" r="5" fill="none" style="stroke:var(--ink)" stroke-width="1.5"/>`;
+  if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="5" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/>`;
+  if(i==hs.length-1&&z.eps!=null)g+=`<text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+20:sy(Math.max(z.eps,z.est??z.eps))-10}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
+ return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="legend"><span class="lgi"><i style="background:var(--blue)"></i>Beat</span> <span class="lgi"><i style="background:var(--ink)"></i>Miss</span> <span class="lgi"><i class="o"></i>Estimate</span></div>`}
+function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${lg(t,"s")}Latest earnings: ${t}</span><span class="cap r">${c}</span></h2>`;if(!x)return hd("")+`<div class="empty">${(D.tick[t]||{}).fund?"Fund or ETF, no quarterly earnings reports.":"No earnings data."}</div>`;
+ const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{};const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=v=>{const m=MONEY(v);return cs&&m!="n/a"?m.replace("$",cs):m};
+ const srcQ=q&&src.revenue!=null&&src.period&&src.period.slice(0,7)==q.period.slice(0,7);/* latest quarter: use the sourced release figures so actual, estimate and year-ago share one basis */
+ const rev=srcQ?src.revenue:q&&q.revenue;
+ const yo=q&&qs.find(z=>z.period.slice(0,4)==String(+q.period.slice(0,4)-1)&&z.period.slice(5,7)==q.period.slice(5,7)),prev=srcQ&&src.revenue_prior_year?src.revenue_prior_year:(yo?yo.revenue:src.revenue_prior_year),yoy=rev&&prev?(rev/prev-1)*100:null;
+ const rest=src.revenue_est,rs=rev&&rest?(rev/rest-1)*100:null;
+ const kpi=(k,v,sub,c)=>`<div class="ek"><div class="k">${k}</div><div class="v">${v}${c?" "+c:""}</div><div class="cap">${sub||"&nbsp;"}</div></div>`;
+ const hs=x.history.filter(z=>z.eps!=null);
+ const n=eNext(t);return`${hd(`${q?ql(q.period).replace(" '"," 20"):""}${h?" · reported "+md(h.date)+(h.time?" "+h.time:""):""}${n?" · next "+md(n.date):""}`)}
+ <div class="ekg e3">${kpi("Revenue",rev!=null?money(rev):"n/a",rest?`vs ${money(rest)} est. ${fp(rs,1)}`:"Estimate n/a",rest&&rev?echip(rs):"")}
+ ${kpi(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):"n/a",h&&h.est!=null&&h.eps!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:h&&h.pending?"Reported, figures pending":"Estimate n/a",h&&h.est!=null&&h.eps!=null?echip(h.surprise):"")}
+ ${kpi("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a")}</div>
+ ${x.takeaway||x.guidance?`<div class="enotes">${x.takeaway?`<div><div class="k">Takeaway</div><p>${esc(x.takeaway)} ${x.takeaway_url?`<a href="${esc(x.takeaway_url)}" target="_blank" rel="noopener">${esc(x.takeaway_source||"Source")}</a>`:""}</p></div>`:""}${x.guidance?`<div><div class="k">Guidance</div><p>${esc(x.guidance)}</p></div>`:""}</div>`:""}
+ <div class="e2 ech2"><div><div class="k2">Revenue by quarter</div><div class="chart">${ebars(qs.map(z=>z.revenue),qs.map(z=>ql(z.period)),money)}</div></div><div><div class="k2">EPS vs estimate</div><div class="chart">${eepsChart(hs)}</div></div></div>
+ <div class="cap esrc">Via Yahoo Finance${src.url?`; latest quarter from <a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.source)}</a>${src.revenue_est_source?"; estimate "+esc(src.revenue_est_source):""}`:""}.</div>`}
 /* svg helpers */
 function line(pts,W,H,P,lo,hi,color,w=2,dash=""){if(pts.length<2)return"";const sx=i=>P.l+i*(W-P.l-P.r)/(pts.length-1),sy=v=>P.t+(hi-v)/(hi-lo||1)*(H-P.t-P.b);
  let pv=0;const dd=pts.map((v,i)=>{if(v==null||!isFinite(v)){pv=0;return""}const c=(pv?"L":"M")+sx(i).toFixed(1)+" "+sy(v).toFixed(1);pv=1;return c}).join("");if(!dd)return"";
@@ -51,6 +87,7 @@ if(has("#snap"))$("#snap").innerHTML=D.snap.map(s=>{const h=D.hist[s.sym];if(!h)
  return`<button class="sc sct" data-sym="${esc(s.sym)}" aria-controls="snp" title="Open chart"><div class="n">${esc(s.name)}<span class="lv">Chart ›</span></div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></button>`}).join("");
 const SHORTN={JPM:"JPMorgan",PSUS:"Pershing Sq USA",SPY:"S&P 500",PS:"Pershing Square"};
 const COLS=[["t","Ticker"],["price","Close"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"],["tpe","P/E"]];
+const HIDEM=new Set(["m1","ytd"]);
 let sortK="d1",sortD=-1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,perf(t)]));
 function peCalc(t,p){const x=D.tick[t]||{},q=P[t];if(!q)return;q.tpe=x.teps>0&&p?p/x.teps:(x.tpe>0&&x.teps==null?x.tpe:null);q.fpe=x.feps>0&&p?p/x.feps:(x.pe>0&&x.feps==null?x.pe:null);for(const k of["tpe","fpe"])if(!(q[k]>0)||q[k]>999)q[k]=null}
 D.tickers.forEach(t=>peCalc(t,P[t].price));
@@ -58,19 +95,18 @@ const peF=v=>v==null?'<span class="na">n/a</span>':fmt(v,1);
 const BCL=[];let bcq=0;
 window.BC_livePrice=(t,p)=>{p=+p;if(!(p>0)||!P[t])return;peCalc(t,p);BCL.forEach(f=>f(t,p));if(!bcq){bcq=1;requestAnimationFrame(()=>{bcq=0;if(has("#wl"))renderWL()})}};
 window.addEventListener("message",e=>{const m=e.data;if(m&&m.bcPrice)for(const[t,p]of Object.entries(m.bcPrice))window.BC_livePrice(t,+p)});
-function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>`<th data-k="${k}" class="${k==sortK?"on":""} ${i>=4&&k!="tpe"?"hide-m":""} ${i>=1?"r":""}"><span class="thl">${l}${k==sortK?`<span class="ar">${sortD<0?"▼":"▲"}</span>`:""}</span></th>`).join("");
+function renderWL(){const th=$("#wl thead tr");th.innerHTML=COLS.map(([k,l],i)=>`<th data-k="${k}" class="${k==sortK?"on":""} ${HIDEM.has(k)?"hide-m":""} ${i>=1?"r":""}"><span class="thl">${l}${k==sortK?`<span class="ar">${sortD<0?"▼":"▲"}</span>`:""}</span></th>`).join("");
  th.querySelectorAll("th").forEach(e=>e.onclick=()=>{const k=e.dataset.k;sortD=k==sortK?-sortD:(k=="t"?1:-1);sortK=k;renderWL()});
  const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>sortK=="t"?sortD*a.localeCompare(b):sortD*((P[a][sortK]??-1e9)-(P[b][sortK]??-1e9)));
  $("#wl tbody").innerHTML=ts.map(t=>{const p=P[t];return`<tr data-t="${t}" class="${t==sel?"sel":""}"><td><span class="tkw">${lg(t)}<span><span class="tk">${t}</span><span class="nm">${esc(SHORTN[t]||D.tick[t].name)}</span></span></span></td><td class="num">$${fmt(p.price)}</td><td class="num">${fp(p.d1)}</td><td class="num">${fp(p.d5)}</td><td class="num hide-m">${fp(p.m1)}</td><td class="num hide-m">${fp(p.ytd)}</td><td class="num pe">${peF(p.tpe)}</td></tr>`}).join("");
  $("#wl tbody").querySelectorAll("tr").forEach(r=>r.onclick=()=>select(r.dataset.t,true));if(!sel)select(ts[0]);fitWL()}
 function fitWL(){const w=$("#wl"),tw=w.closest(".tw");if(!tw)return;w.classList.remove("cmp");if(tw.scrollWidth>tw.clientWidth+1)w.classList.add("cmp")}
 addEventListener("resize",()=>{if(has("#wl"))fitWL()});
-let dRange="3M",dLive=true;
-function select(t,scroll){sel=t;if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
+let dRange="3M",dLive=false;  /* History by default; Live (TradingView, delayed) is an optional tab */
+function select(t,scroll){sel=t;if(window.BC_ecal)BC_ecal();if(scroll)history.replaceState(null,"","#"+t);document.querySelectorAll("#wl tbody tr").forEach(r=>r.classList.toggle("sel",r.dataset.t==t));renderDetail();if(scroll&&innerWidth<1100)$("#detail").scrollIntoView({behavior:"smooth",block:"start"})}
 function renderDetail(){const t=sel,x=D.tick[t],p=P[t],h=D.hist[t],i0=since(h,dRange),seg=h.slice(i0),pts=seg.map(z=>z[1]);
  const room=x.target?pc(x.target,p.price):null,rp=x.rating?`<span class="pill ${x.rating=="Hold"?"h":x.rating=="Sell"?"s":""}">${x.rating}</span>`:'<span class="cap">No coverage</span>';
  const e=x.earnings;const rng=pc(pts[pts.length-1],pts[0]);
- const nws=(D.news[t]||[]).map(i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`).join("");
  const lds=D.leaders.filter(l=>(l.tickers||[]).includes(t)).map(l=>`<div class="it"><div class="h">${esc(l.name)} <span class="cap" style="font-weight:400">${esc(l.title||"")}</span></div><div class="b">${esc(l.text)}</div><div class="m">${esc(l.format)} · ${esc(l.date)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`).join("");
  $("#detail").innerHTML=`<div class="dh">${lg(t,"l")}<span class="t">${t}</span><span class="cap" style="font-size:var(--t-body)">${esc(x.name)}</span><span class="p num">$${fmt(p.price)}</span><span class="chg num">${fp(p.d1)}</span></div>
  <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s3);margin:var(--s4) 0 var(--s2);flex-wrap:wrap"><span style="display:flex;gap:var(--s2);flex-wrap:wrap"><span class="seg" id="dlv"><button class="${dLive?"":"on"}">History</button><button class="${dLive?"on":""}">Live</button></span><span class="seg" id="dr" style="${dLive?"display:none":""}">${["1M","3M","6M","1Y","YTD"].map(r=>`<button class="${r==dRange?"on":""}">${r}</button>`).join("")}</span></span><span class="cap num" style="${dLive?"display:none":""}">${dRange}: ${fp(rng)}</span></div>
@@ -80,9 +116,9 @@ ${asofNote()}</div>
  <div class="stats"><div><div class="k">Analysts</div><div class="v">${rp}</div>${x.n?`<div class="cap">${x.n} analysts</div>`:""}</div>
  <div><div class="k">Avg target</div><div class="v num">${x.target?"$"+fmt(x.target):"n/a"}</div>${x.low?`<div class="cap num">Range $${fmt(x.low,0)} to $${fmt(x.high,0)}</div>`:""}</div>
  <div><div class="k">Room to target</div><div class="v num">${room==null?"n/a":fp(room,1)}</div></div>
- <div><div class="k">Next earnings</div><div class="v">${e?wd(e.date):x.fund?"n/a (fund)":"Not set"}</div>${e&&e.eps!=null?`<div class="cap num">EPS est. $${fmt(e.eps)}</div>`:""}</div></div>
- <div class="sub2" style="margin-top:0">Latest news</div><div class="items">${nws||'<div class="empty">No major news in today\'s digest.</div>'}</div>
+ <div><div class="k">Next report</div><div class="v">${(()=>{const n=eNext(t);return n?wd(n.date):x.fund?"n/a (fund)":"Not set"})()}</div>${(()=>{const n=eNext(t);return n&&n.est!=null?`<div class="cap num">EPS est. $${fmt(n.est)}${n.time?" · "+esc(n.time):""}</div>`:""})()}</div></div>
  <div class="sub2">Leaders on the record</div><div class="items">${lds||'<div class="empty">No new commentary today.</div>'}</div>`;
+ if(has("#s-earnd")){const ec=$("#s-earnd");ec.innerHTML=earnBlock(t);ec.style.display=ER[t]?"":"none"}
  $("#dr").querySelectorAll("button").forEach(b=>b.onclick=()=>{dRange=b.textContent;renderDetail()});
  $("#dlv").querySelectorAll("button").forEach((b,k)=>b.onclick=()=>{dLive=k==1;renderDetail()});if(dLive)tvEmbed($("#dtv"),TV[t])}
 /* analysts: upside recomputed from the live price; targets/EPS from the morning Yahoo pull */
@@ -104,9 +140,9 @@ ${asofNote()}</div>
  draw()})();
 /* calendar */
 const EARN=D.cal.filter(c=>c.kind=="Earnings"),MAC=D.cal.filter(c=>c.kind!="Earnings");
-const calRow=c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="earnings.html?t=${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`;
+const calRow=c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="index.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`;
 if(has("#macrocal")){if(MAC.length)$("#macrocal tbody").innerHTML=MAC.map(calRow).join("");else $("#macrocal").remove()}
-if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="earnings.html?t=${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`).join(""):'<tr><td class="empty">Nothing scheduled.</td></tr>';
+if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr><td><div class="d">${wd(c.date)}</div><div class="cap">${esc(c.time||"Time TBC")}</div></td><td><div class="tag">${c.kind}</div><div style="font-weight:600">${c.t?`<a href="index.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.title)}</a>`:esc(c.title)}</div><div class="cap">${[c.eps!=null?"EPS est. $"+fmt(c.eps):"",c.note].filter(Boolean).map(esc).join(" · ")}${c.url?` · <a href="${esc(c.url)}" target="_blank" rel="noopener">Source</a>`:""}</div></td></tr>`).join(""):'<tr><td class="empty">Nothing scheduled.</td></tr>';
 if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p style="margin:${has("#macrocal")?16:0}px 0 0"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
 /* comparison */
 let cRange="3M";const on=new Set(["SPY","WL"]);const HOLD=D.tickers.filter(t=>t!="SPY"&&D.hist[t]);let wlNote="";const keys=["WL",...D.tickers.filter(t=>D.hist[t])];const col=k=>k=="WL"?NAVY:k=="SPY"?INK:INK;const DASH=["","6 4","2 3","8 3 2 3"];const dsh=k=>k=="WL"||k=="SPY"?"":DASH[D.tickers.indexOf(k)%4];
@@ -171,12 +207,12 @@ document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 if(has("#s-earn")&&["#s-cal","#s-up","#s-feed"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"?"#s-big":"#s-earn").scrollIntoView(),50);
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
-if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 var(--s4)">${lg(t,"s")}<a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
+if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 var(--s4)">${lg(t,"s")}<a href="index.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
 if(has("#leaders"))$("#leaders").innerHTML=D.leaders.map(l=>`<div class="it"><div class="h">${esc(l.name)} <span class="cap" style="font-weight:400">${esc(l.title||"")}</span></div><div class="b">${esc(l.text)}</div><div class="m">${esc(l.format)} · ${esc(l.date)} · <a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.source)}</a></div></div>`).join("")||'<div class="empty">No new commentary today.</div>';
 /* overview previews */
 if(has("#pv-ust")){const h=UST.y10;if(h){const n=h.length,v=h[n-1][1];$("#pv-ust").innerHTML=`<div class="big1 num">${fmt(v,2)}%</div><div class="chg num">${fbp(bp(v,h[n-2][1]))} today</div><div style="margin-top:var(--s3)">${spark(h).replace('width="80" height="28"','width="100%" height="56" preserveAspectRatio="none"')}</div><div class="cap">10-year yield, last 30 sessions</div>`}}
-if(has("#pv-mov")){const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>P[b].d1-P[a].d1),pick=[...ts.slice(0,3),...ts.slice(-3)];$("#pv-mov").innerHTML=pick.map(t=>`<div class="mv"><a href="portfolio.html#${t}"><b>${t}</b></a><span class="num">$${fmt(P[t].price)} &nbsp;${fp(P[t].d1)}</span></div>`).join("")}
-if(has("#pv-earn"))$("#pv-earn").innerHTML=EARN.slice(0,3).map(c=>`<div class="mv"><span><b>${c.t?`<a href="earnings.html?t=${esc(c.t)}" style="color:var(--ink)">${esc(c.t)}</a>`:esc(c.title)}</b> <span class="cap">${esc(c.time||"")}</span></span><span class="num" style="color:var(--blue);font-weight:600">${md(c.date)}</span></div>`).join("")||'<div class="empty">No earnings in the next 14 days.</div>';
+if(has("#pv-mov")){const ts=D.tickers.filter(t=>D.hist[t]).sort((a,b)=>P[b].d1-P[a].d1),pick=[...ts.slice(0,3),...ts.slice(-3)];$("#pv-mov").innerHTML=pick.map(t=>`<div class="mv"><a href="index.html#${t}"><b>${t}</b></a><span class="num">$${fmt(P[t].price)} &nbsp;${fp(P[t].d1)}</span></div>`).join("")}
+if(has("#pv-earn"))$("#pv-earn").innerHTML=EARN.slice(0,3).map(c=>`<div class="mv"><span><b>${c.t?`<a href="index.html#${esc(c.t)}" style="color:var(--ink)">${esc(c.t)}</a>`:esc(c.title)}</b> <span class="cap">${esc(c.time||"")}</span></span><span class="num" style="color:var(--blue);font-weight:600">${md(c.date)}</span></div>`).join("")||'<div class="empty">No earnings in the next 14 days.</div>';
 if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it" style="margin-bottom:var(--s3)"><div class="h">${esc(b.headline)}</div><div class="m"><a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a></div></div>`).join("");
 /* sidebar nav: mobile drawer */
 (function(){const hb=$(".hamb"),setD=o=>{document.body.classList.toggle("drawer",o);hb.setAttribute("aria-expanded",o)};hb.onclick=()=>setD(!document.body.classList.contains("drawer"));
@@ -193,16 +229,25 @@ if(has("#pv-big"))$("#pv-big").innerHTML=D.big.slice(0,2).map(b=>`<div class="it
  else if(pgn=="calendar"){const now=D.lastbar,lim=new Date(now+"T12:00:00");lim.setDate(lim.getDate()+7);const k=lim.toISOString().slice(0,10);let ev=D.cal.filter(c=>c.date>=now&&c.date<=k);if(!ev.length)ev=D.cal.slice(0,3);
   L=ev.slice(0,3).map(c=>`<b>${wd(c.date)}</b>: ${esc(c.kind=="Earnings"?(c.t||c.title)+" earnings":c.title)}${c.time?" ("+esc(c.time.toLowerCase())+")":""}.`);
   if(D.macro_note)L.push("Macro: "+esc(D.macro_note));if(!L.length)L=["Nothing scheduled in the next 14 days."];S.textContent="Earnings dates via Yahoo Finance; macro from today's digest."}
- else if(pgn=="earnings"&&D.earn){const E=D.earn,ts=Object.keys(E),rec=ts.filter(t=>E[t].history.length).sort((a,b)=>E[b].history.at(-1).date.localeCompare(E[a].history.at(-1).date)),up=ts.filter(t=>E[t].next).sort((a,b)=>E[a].next.date.localeCompare(E[b].next.date));
-  const r=rec[0];if(r){const h=E[r].history.at(-1);L.push(h.eps==null?`Latest: <b>${r}</b> reported ${md(h.date)}, figures pending.`:`Latest: <b>${r}</b> ${md(h.date)}, EPS $${fmt(h.eps)} vs $${fmt(h.est)} est. (${fp(h.surprise,1)}).`)}
-  up.slice(0,3).forEach(t=>L.push(`Next: <b>${t}</b> ${md(E[t].next.date)}${E[t].next.time?" "+E[t].next.time:""}.`));
-  S.textContent="Via Yahoo Finance."}
  else if(pgn=="news"){const b=D.big[0],ev=D.cal.find(c=>c.date>=D.lastbar),ld=D.leaders[0];
   if(b)L.push(`Top story: <b>${esc(b.headline)}.</b> ${esc(b.why)}`);
   if(ev)L.push(`Next event: <b>${wd(ev.date)}</b>, ${esc(ev.kind=="Earnings"?(ev.t||ev.title)+" earnings":ev.title)}${ev.time?" ("+esc(ev.time.toLowerCase())+")":""}.`);
   const b2=D.big[1];if(b2)L.push(`Also: <b>${esc(b2.headline)}.</b>`);else if(ld)L.push(`${esc(ld.name)}: ${esc(ld.text)}`);
   S.innerHTML=(b?`<a href="${esc(b.url)}" target="_blank" rel="noopener">${esc(b.source)}</a> · `:"")+"from today's digest"}
  $("#sumt").outerHTML=`<ul class="bul" id="sumt">${L.slice(0,4).map(x=>`<li>${x}</li>`).join("")}</ul>`})();
+/* report calendar tiles (Portfolio): latest beat/miss + next report; click selects the holding */
+if(has("#ecal")&&D.earn){const TS=D.tickers.filter(t=>ER[t]),run=D.run||D.lastbar,dd=(a,b)=>(new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5;
+ const recent=t=>{const h=lastH(t);return h&&dd(h.date,run)<=45&&dd(h.date,run)>=-1};
+ const order=[...TS.filter(recent).sort((a,b)=>lastH(b).date.localeCompare(lastH(a).date)),...TS.filter(t=>!recent(t)&&eNext(t)).sort((a,b)=>eNext(a).date.localeCompare(eNext(b).date)),...TS.filter(t=>!recent(t)&&!eNext(t))];
+ window.BC_ecal=()=>{$("#ecal").innerHTML=order.map(t=>{const r=recent(t),h=lastH(t),n=eNext(t);
+  const rep=r?`${md(h.date)}${h.time?" · "+h.time:""}${h.pending?' <span class="cap">results pending</span>':(h.eps!=null&&h.est!=null?echip(h.surprise):' <span class="cap">no estimate</span>')}`:"";
+  return`<button class="ect${t==sel?" on":""}" data-t="${t}" aria-pressed="${t==sel}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc((D.tick[t]||{}).name||t)}</div>${r?`<div class="ewn num rp">${rep}</div>`:""}<div class="ewn num${r?" ewx":""}">${n?(r?"Next ":"")+md(n.date)+(n.time?" · "+n.time:""):"Date not set"}</div></button>`}).join("");
+  $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>{select(b.dataset.t);history.replaceState(null,"","#"+b.dataset.t);$("#s-earnd").style.display!="none"&&$("#s-earnd").scrollIntoView({behavior:"smooth",block:"start"})})};
+ BC_ecal()}
+/* trending headlines per holding (top of Portfolio), from today's digest */
+if(has("#heads")){const ts=D.tickers.filter(t=>(D.news[t]||[]).length).sort((a,b)=>Math.abs(P[b]?.d1??0)-Math.abs(P[a]?.d1??0));
+ $("#heads").innerHTML=ts.map(t=>`<div class="hb"><div class="hbh">${lg(t,"s")}<a href="#${t}" data-t="${t}" class="hbt">${t}</a><span class="cap hbn">${esc(SHORTN[t]||D.tick[t]?.name||"")}</span><span class="chg num">${fp(P[t]?.d1)}</span></div>${D.news[t].slice(0,3).map(i=>`<a class="hl" href="${esc(i.url)}" target="_blank" rel="noopener"><span class="h">${esc(i.headline)}</span><span class="cap">${esc(i.source)}</span></a>`).join("")}</div>`).join("")||'<div class="empty">No holding-specific headlines in today\'s digest.</div>';
+ $("#heads").querySelectorAll(".hbt").forEach(a=>a.onclick=e=>{e.preventDefault();select(a.dataset.t,true);if(innerWidth>=1100)$("#s-port").scrollIntoView({behavior:"smooth",block:"start"})})}
 /* old overview anchors moved to markets.html */
 if(has("#wl")&&["#s-snap","#ustc","#hist","#usttiles","#s-sub"].includes(location.hash)&&location.hash!="#s-sub")location.replace("markets.html"+location.hash);
 /* ticker deep link: portfolio.html#NVDA */
@@ -216,59 +261,8 @@ function tvWidget(el,kind,cfg){if(!el)return;el.innerHTML='<div class="tradingvi
  const sc=document.createElement("script");sc.src="https://s3.tradingview.com/external-embedding/embed-widget-"+kind+".js";sc.async=true;sc.text=JSON.stringify(Object.assign({colorTheme:"light",isTransparent:true,locale:"en"},cfg));el.firstChild.appendChild(sc)}
 const LIVE=D.tickers.filter(t=>TV[t]);
 tvWidget($("#tape"),"ticker-tape",{symbols:LIVE.map(t=>({proName:TV[t],title:t})),showSymbolLogo:false,displayMode:"compact"});
-tvWidget($("#liveq"),"market-quotes",{width:"100%",height:innerWidth<640?600:560,showSymbolLogo:false,symbolsGroups:[{name:"Holdings and SPY",originalName:"Holdings",symbols:LIVE.map(t=>({name:TV[t],displayName:t+" · "+((D.tick[t]||{}).name||t)}))}]});
 
 
-/* earnings page */
-if(has("#ecal")&&D.earn){
- const E=D.earn,TS=D.tickers.filter(t=>E[t]),run=D.run||D.lastbar,NM=t=>(D.tick[t]||{}).name||t;
- const money=v=>v==null?"n/a":(Math.abs(v)>=1e9?"$"+fmt(v/1e9,2)+"B":"$"+fmt(v/1e6,0)+"M");
- const days=(a,b)=>(new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5;
- const lastH=t=>E[t].history.at(-1),recent=t=>{const h=lastH(t);return h&&days(h.date,run)<=45&&days(h.date,run)>=-1};
- const chip=s=>s==null?"":`<span class="ech ${s>=0?"b":"m"}">${s>=0?"Beat":"Miss"}</span>`;
- const order=[...TS.filter(recent).sort((a,b)=>lastH(b).date.localeCompare(lastH(a).date)),
-   ...TS.filter(t=>!recent(t)&&E[t].next).sort((a,b)=>E[a].next.date.localeCompare(E[b].next.date)),...TS.filter(t=>!recent(t)&&!E[t].next)];
- let cur=new URLSearchParams(location.search).get("t");cur=cur&&E[cur.toUpperCase()]?cur.toUpperCase():(order.find(recent)||order[0]);
- function cal(){$("#ecal").innerHTML=order.map(t=>{const r=recent(t),h=lastH(t),n=E[t].next;
-   const when=r?`${md(h.date)}${h.time?" · "+h.time:""}`:n?`${md(n.date)}${n.time?" · "+n.time:""}`:"Date not set";
-   return`<button class="ect${t==cur?" on":""}" data-t="${t}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc(NM(t))}</div><div class="ewn num${r?" rp":""}">${when}${r?(h.pending?' <span class="cap">results pending</span>':chip(h.surprise)):""}</div></button>`}).join("");
-  $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>pick(b.dataset.t,1));
-  $("#ecalnote").textContent=""}
- $("#esel").innerHTML=TS.map(t=>`<button role="tab" data-t="${t}" class="lgb">${t}${lg(t,"xs")}</button>`).join("");
- $("#esel").querySelectorAll("button").forEach(b=>b.onclick=()=>pick(b.dataset.t));
- function pick(t,scroll){cur=t;history.replaceState(null,"","?t="+t);cal();render();if(scroll)$("#s-edet").scrollIntoView({behavior:"smooth",block:"start"})}
- const marg=(q,k)=>{if(!q||q[k]==null||!q.revenue)return null;const v=q[k]/q.revenue*100;return isFinite(v)&&v<=100&&v>=(k=="gross"?0:-100)?v:null},pctv=v=>v==null?'<span class="cap">n/a</span>':`<span class="num">${fmt(v,1)}%</span>`;
- function kpi(k,v,sub,c){return`<div class="ek"><div class="k">${k}</div><div class="v">${v}${c?" "+c:""}</div><div class="cap">${sub||"&nbsp;"}</div></div>`}
- function bars(vals,labels,yf,H=220){const W=520,P={l:8,r:8,t:16,b:28},n=vals.length;if(!n)return'<div class="empty">No data.</div>';
-  const mx=Math.max(0,...vals.filter(v=>v!=null)),mn=Math.min(0,...vals.filter(v=>v!=null)),sy=v=>P.t+(mx-v)/((mx-mn)||1)*(H-P.t-P.b),bw=(W-P.l-P.r)/n;
-  let g=`<line x1="${P.l}" x2="${W-P.r}" y1="${sy(0)}" y2="${sy(0)}" style="stroke:var(--ink)" stroke-opacity=".25"/>`;
-  vals.forEach((v,i)=>{const x=P.l+i*bw+bw*.2,w=bw*.6;g+=`<text x="${x+w/2}" y="${H-8}" font-size="12" text-anchor="middle" style="fill:var(--ink)">${labels[i]}</text>`;
-   if(v==null)return;const y0=sy(0),y1=sy(v);g+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${w}" height="${Math.max(1,Math.abs(y1-y0))}" rx="3" style="fill:${v<0?"var(--ink)":"var(--blue)"}"/><text x="${x+w/2}" y="${v<0?y0+14:y1-5}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">${yf(v)}</text>`});
-  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`}
- const ql=d=>{const m=+d.slice(5,7);return"Q"+Math.ceil(m/3)+" '"+d.slice(2,4)};
- function render(){const x=E[cur],qs=x.quarters,q=qs.at(-1),h=lastH(cur),src=x.latest_src||{};
-  $("#esel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t==cur));
-  const yo=q&&qs.find(z=>z.period.slice(0,4)==String(+q.period.slice(0,4)-1)&&z.period.slice(5,7)==q.period.slice(5,7)),prev=yo?yo.revenue:src.revenue_prior_year,yoy=q&&q.revenue&&prev?(q.revenue/prev-1)*100:null;
-  const rest=src.revenue_est,rs=q&&rest?(q.revenue/rest-1)*100:null,n=x.next;
-  $("#edet").innerHTML=`<div class="eh"><div class="lgh">${lg(cur,"l")}<span class="t">${cur}</span> <span class="cap" style="font-size:var(--t-body)">${esc(NM(cur))}</span></div>
-   <div class="cap">${q?ql(q.period).replace(" '"," 20"):"No quarterly data"}${h?" · Reported "+md(h.date):""}${n?" · Next "+md(n.date)+(n.time?" "+n.time:""):""}</div></div>
-   <div class="ekg">${kpi("Revenue",q?money(q.revenue):"n/a",rest?`vs ${money(rest)} est. ${fp(rs,1)}`:"Estimate n/a",rest?chip(rs):"")}
-   ${kpi(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):"n/a",h&&h.est!=null&&h.eps!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:h&&h.pending?"Reported today, figures pending":"Estimate n/a",h&&h.est!=null&&h.eps!=null?chip(h.surprise):"")}
-   ${kpi("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a")}
-   ${kpi("Gross margin",pctv(marg(q,"gross")),"")}${kpi("Operating margin",pctv(marg(q,"operating")),"")}${kpi("Net margin",pctv(marg(q,"net")),"")}</div>
-   ${x.guidance||x.takeaway?`<div class="enotes">${x.takeaway?`<div><div class="k">Takeaway</div><p>${esc(x.takeaway)} ${x.takeaway_url?`<a href="${esc(x.takeaway_url)}" target="_blank" rel="noopener">${esc(x.takeaway_source||"Source")}</a>`:""}</p></div>`:""}${x.guidance?`<div><div class="k">Guidance</div><p>${esc(x.guidance)}</p></div>`:""}</div>`:""}`;
-  $("#erev").innerHTML=bars(qs.map(z=>z.revenue),qs.map(z=>ql(z.period)),money);
-  const hs=x.history.filter(z=>z.eps!=null);$("#eeps").innerHTML=hs.length?(()=>{const W=520,H=220,P={l:8,r:8,t:16,b:28},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
-   let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="12" text-anchor="middle" style="fill:var(--ink)">${ql(new Date(new Date(z.date).getTime()-50*864e5).toISOString().slice(0,10))}</text>`;
-    if(z.est!=null)g+=`<circle cx="${cx}" cy="${sy(z.est)}" r="6" fill="none" style="stroke:var(--ink)" stroke-width="1.5"/>`;
-    if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="6" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/><text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+22:sy(Math.max(z.eps,z.est??z.eps))-12}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
-   return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="legend"><span class="lgi"><i style="background:var(--blue)"></i>Actual, beat</span> <span class="lgi"><i style="background:var(--ink)"></i>Actual, miss</span> <span class="lgi"><i class="o"></i>Estimate</span></div>`})():'<div class="empty">No EPS history.</div>';
-  const mq=qs.filter(z=>z.revenue);const MS=[["Gross","gross","var(--blue)",2,""],["Operating","operating","var(--ink)",2,""],["Net","net","var(--ink)",1.5,"5 4"]].map(([nm,k,c,w,dash])=>({nm,pts:mq.map(z=>marg(z,k)),color:c,w,dash,label:1})).map(x=>({...x,ok:x.pts.some(v=>v!=null)}));const MSo=MS.filter(x=>x.ok);
-  $("#emar").innerHTML=mq.length>1&&MSo.length?axisChart(MSo,
-   {W:Math.max(300,$("#emar").clientWidth||520),H:220,dates:mq.map(z=>z.period),yf:v=>fmt(v,0)+"%",zero:1,tip:(i,S)=>S.map(x=>`<div class="tr"><span>${x.nm}</span><b class="num">${x.pts[i]==null?"n/a":fmt(x.pts[i],1)+"%"}</b></div>`).join("")})+'<div class="legend">'+MS.map(x=>`<span class="lgi${x.ok?"":" off"}"><i class="ln" style="border-top:${x.w}px ${x.dash?"dashed":"solid"} ${x.color}"></i>${x.nm}${x.ok?"":" n/a"}</span>`).join("")+'</div>':'<div class="empty">Not enough quarters.</div>';
-  const an=x.annual;$("#eann").innerHTML=an.length?`<div class="k2">Revenue</div>${bars(an.map(z=>z.revenue),an.map(z=>z.year),money,130)}<div class="k2">Net income</div>${bars(an.map(z=>z.net),an.map(z=>z.year),money,130)}`:'<div class="empty">No annual data.</div>';
-  $("#esrc").innerHTML=`Via Yahoo Finance${src.url?`; latest quarter from <a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.source)}</a>${src.revenue_est_source?"; estimate "+esc(src.revenue_est_source):""}`:""}.`}
- cal();render();let er;addEventListener("resize",()=>{clearTimeout(er);er=setTimeout(render,150)})}
 /* home: Portfolio today as three KPI stat boxes (same data as summary) */
 (function(){if(document.body.dataset.page!="index"||!has("#s-top"))return;
  const hs=D.tickers.filter(t=>t!="SPY"&&P[t]&&P[t].d1!=null);if(!hs.length)return;

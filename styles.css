@@ -226,10 +226,8 @@ tbody tr:hover td:first-child,tbody tr.sel td:first-child,tbody tr.sel:hover td:
 #wl th,#wl td{padding-left:var(--s2);padding-right:var(--s2)}#wl th:first-child,#wl td:first-child{padding-left:var(--s3)}#wl th:last-child,#wl td:last-child{padding-right:var(--s3)}
 .up,.chg.up,.v.up{color:var(--blue);font-weight:600}.dn,.chg.dn,.v.dn{color:var(--ink);font-weight:600}
 h3.sub{font-size:var(--t-sm);font-weight:700;margin:var(--s2) 0 var(--s2);display:flex;gap:var(--s2);align-items:baseline}
-.tvq{min-height:540px;margin-bottom:var(--s4)}
 .tape{min-height:46px;background:#FFFFFF;border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.tape .tradingview-widget-copyright,.tvq .tradingview-widget-copyright{font-size:var(--t-2xs);padding:2px var(--s2)}
-.tvq{min-height:620px}h3.sub{flex-wrap:wrap}h3.sub>.cap{font-weight:400}
+.tape .tradingview-widget-copyright{font-size:var(--t-2xs);padding:2px var(--s2)}
 /* ===== polish sweep: spacing scale 4/8/12/16/24/32/48 ===== */
 :root{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px}
 main.grid,.shell>main{gap:var(--s5)}
@@ -251,8 +249,6 @@ h2 .cap.r{font-weight:500;line-height:20px}
 .tape .tradingview-widget-container__widget{height:46px!important}
 .tradingview-widget-copyright{font-size:var(--t-2xs)!important;line-height:16px;text-align:right;padding:var(--s1) var(--s3) 0!important}
 .tape .tradingview-widget-copyright{padding:2px var(--s3) var(--s1)!important;border-top:1px solid var(--line)}
-.tvq{min-height:0;margin:0}
-.tvq .tradingview-widget-container__widget{height:560px}
 .tvw{border-radius:8px;overflow:hidden}
 /* CTA balance */
 .cta{padding:var(--s5);gap:var(--s4);align-content:center}
@@ -261,7 +257,7 @@ h2 .cap.r{font-weight:500;line-height:20px}
 #wl td.num,#wl th{vertical-align:middle}
 /* mobile */
 @media(max-width:900px){.shell>main{padding:var(--s4) var(--s4) 0}}
-@media(max-width:640px){.card{padding:var(--s4)}h2{font-size:var(--t-card);line-height:24px}.ph h1{font-size:var(--t-kpi);line-height:32px}.tvq .tradingview-widget-container__widget{height:560px}main.grid,.grid{gap:var(--s4)}}
+@media(max-width:640px){.card{padding:var(--s4)}h2{font-size:var(--t-card);line-height:24px}.ph h1{font-size:var(--t-kpi);line-height:32px}main.grid,.grid{gap:var(--s4)}}
 footer{padding:var(--s5) 0 var(--s7)}
 
 /* bottom signup + site footer */
@@ -312,14 +308,8 @@ footer{padding:var(--s5) 0 var(--s7)}
 #s-sub .dg-l{display:none}#s-sub.dg{gap:var(--s3);padding:var(--s5) var(--s6)}#s-sub .dg-f{margin-top:var(--s1)}
 
 /* earnings page */
-.ecal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s3)}
-.ect{text-align:left;background:var(--surf);border:1px solid var(--grey);border-radius:12px;padding:var(--s3);cursor:pointer;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
-.ect:hover{border-color:var(--blue)}.ect.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
-.ett{display:flex;align-items:center;gap:var(--s1);flex-wrap:wrap}.ett b{font-size:var(--t-body);margin-right:auto}
-.ect .cap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ewn{font-size:var(--t-sm);font-weight:600;margin-top:var(--s1);color:var(--blue)}
 .ech{font-size:var(--t-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px var(--s1);border-radius:6px;background:var(--grey);color:var(--ink)}
 .ech.b{background:var(--blue);color:#FFFFFF}.ech.m{background:var(--ink);color:#FFFFFF}
-.esel{display:flex;flex-wrap:wrap;margin-bottom:var(--s5);background:var(--grey);border:0}.esel button.on{background:var(--surf);color:var(--blue)}
 .eh{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s2) var(--s5);flex-wrap:wrap;margin-bottom:var(--s4)}.eh .t{font-size:var(--t-kpi);font-weight:700}
 .ekg{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s4);padding:var(--s4) 0;border-top:1px solid var(--grey);border-bottom:1px solid var(--grey)}
 .ek .k,.enotes .k{font-size:var(--t-xs);font-weight:600}.ek .v{font-size:var(--t-kpi);font-weight:700;margin:var(--s1) 0 2px}.ek .cap{line-height:1.5}
@@ -328,10 +318,8 @@ footer{padding:var(--s5) 0 var(--s7)}
 .lgi{display:inline-flex;align-items:center;gap:var(--s1);margin-right:var(--s3)}.lgi i{width:10px;height:10px;border-radius:50%;display:inline-block}
 .lgi i.o{border:1.5px solid var(--ink);box-sizing:border-box}.lgi i.d{width:14px;height:0;border-top:2px dashed var(--ink);border-radius:0}
 .e2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
-#esrc{margin-top:calc(-1 * var(--s2))}
-@media(max-width:1100px){.ecal{grid-template-columns:repeat(4,minmax(0,1fr))}.ekg{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:640px){.ecal{grid-template-columns:repeat(2,minmax(0,1fr))}.ekg{grid-template-columns:repeat(2,minmax(0,1fr))}.enotes,.e2{grid-template-columns:1fr}.esel button{padding:var(--s2) var(--s2)}}
-.ewn{display:flex;align-items:center;gap:var(--s1)}.ewn.rp{color:var(--ink)}.k2{font-size:var(--t-xs);font-weight:600;margin:var(--s1) 0}
+@media(max-width:1100px){.ekg{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){.ekg{grid-template-columns:repeat(2,minmax(0,1fr))}.enotes,.e2{grid-template-columns:1fr}}
 #erev svg,#eeps svg,#eann svg{display:block;width:100%;max-height:260px}#eann svg{max-height:160px}
 /* ===== Design system pass (Oct 22) ===== */
 :root{--t-2xs:11px;--t-title:28px;--t-card:18px;--t-body:15px;--t-sm:13px;--t-xs:12px;--t-kpi:22px}
@@ -348,11 +336,9 @@ h2 .r,h2 .cap.r{margin-left:auto;width:auto;font-size:var(--t-xs);font-weight:50
 .tag,.dg-eb,.k2,.enotes .k,.ek .k,.stats .k,.sfd h4{font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
 .ek .v,.stats .v{font-size:var(--t-kpi);line-height:28px;font-weight:700;margin:var(--s1) 0 2px;letter-spacing:-.01em}
 .pill,.ech{font-size:var(--t-2xs);line-height:16px;font-weight:700;padding:2px var(--s2);border-radius:999px;letter-spacing:.02em}
-.chip,.seg button,.esel button{font-size:var(--t-sm)}
+.chip,.seg button{font-size:var(--t-sm)}
 .card{padding:var(--s5)}
 .grid{gap:var(--s5)}
-.ect{padding:var(--s3) var(--s4);border-radius:10px}
-.ecal{gap:var(--s3)}
 .ekg{gap:var(--s4) var(--s5);padding:var(--s4) 0;border-top:1px solid var(--grey);border-bottom:1px solid var(--grey)}
 .enotes{gap:var(--s5);margin-top:var(--s5)}
 .enotes p{font-size:var(--t-sm);line-height:1.6;margin-top:var(--s1)}
@@ -362,24 +348,13 @@ h2 .r,h2 .cap.r{margin-left:auto;width:auto;font-size:var(--t-xs);font-weight:50
 .ek .v .ech{margin:0}
 .ek .cap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Earnings breathing room (Oct 22) */
-.ecal{gap:var(--s4)}
-.ect{padding:var(--s5) var(--s5);min-height:120px;display:flex;flex-direction:column;gap:var(--s2);border-radius:12px;border:1px solid var(--grey)}
-.ect.on{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
-.ett{display:flex;align-items:center;justify-content:space-between;gap:var(--s3)}
-.ewn{margin-top:auto;display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
-.ewn .ech{margin:0}
-.esel{margin-bottom:var(--s6)}
 .eh{margin-bottom:var(--s5)}
 .ekg{padding:var(--s6) 0;gap:var(--s5)}
 .ek .k{margin-bottom:var(--s2)}
 .ek .v{margin:0 0 var(--s2);flex-wrap:nowrap}
 .enotes{margin-top:var(--s6);gap:var(--s6)}
 .enotes p{line-height:1.6;margin-top:var(--s2)}
-@media(max-width:640px){.ect{padding:var(--s4);min-height:108px}.ekg{padding:var(--s5) 0}}
-.ett{flex-direction:row!important;flex-wrap:nowrap}
-.ett b{font-size:var(--t-body)}
-.ecal{grid-auto-rows:1fr}
-.ett{justify-content:space-between!important;min-height:22px}.ett b{line-height:22px}
+@media(max-width:640px){.ekg{padding:var(--s5) 0}}
 /* company logos */
 .lg{--z:32px;flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--z);height:var(--z);border-radius:8px;background:#fff;border:1px solid #E5E7EB;overflow:hidden;vertical-align:middle;box-sizing:border-box}
 .lg img{width:100%;height:100%;object-fit:contain;display:block}
@@ -392,8 +367,6 @@ h2 .r,h2 .cap.r{margin-left:auto;width:auto;font-size:var(--t-xs);font-weight:50
 .lgb{display:inline-flex;align-items:center;gap:var(--s2)}
 .eh{align-items:center}
 @media(max-width:640px){.lg.l{--z:40px}.tkw{gap:var(--s2)}.lg{--z:28px}.lg.s{--z:24px}.lg.xs{--z:18px}}
-.ect .ett{flex-wrap:wrap!important;row-gap:var(--s2)}
-.ect{min-width:0;overflow:hidden}.ect .ett{min-width:0;max-width:100%}
 @media(max-width:640px){.tkw .lg{--z:24px;border-radius:6px}.tkw .lg.mono{border-radius:50%}.tkw .nm{max-width:88px!important}}
 @media(max-width:640px){#wl th,#wl td{padding-left:var(--s1);padding-right:var(--s1)}#wl th:first-child,#wl td:first-child{padding-left:var(--s2)}#wl th:last-child,#wl td:last-child{padding-right:var(--s2)}}
 
@@ -401,11 +374,10 @@ h2 .r,h2 .cap.r{margin-left:auto;width:auto;font-size:var(--t-xs);font-weight:50
 /* white background + elevated cards (Oct 23) */
 :root{--bg:#FFFFFF;--edge:#EEF0F3;--elev:0 1px 2px rgba(16,24,40,.04),0 4px 16px rgba(16,24,40,.06)}
 body{background:#FFFFFF}
-.card,.sc,.cta,.cta.sm,.cta.side1,.ect,.tape,.tape .tradingview-widget-container{border-color:var(--edge);box-shadow:var(--elev)}
+.card,.sc,.cta,.cta.sm,.cta.side1,.tape,.tape .tradingview-widget-container{border-color:var(--edge);box-shadow:var(--elev)}
 .tape .tradingview-widget-container{box-shadow:none;border:0}
 .card:hover,.sct:hover{border-color:var(--edge)}
 .sct.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),var(--elev)}
-.ect:hover{border-color:var(--blue)}.ect.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),var(--elev)}
 .sb{border-right-color:var(--edge)}
 .mtop{border-bottom-color:var(--edge)}
 body.drawer .sb{box-shadow:0 8px 32px rgba(16,24,40,.10)}
@@ -446,7 +418,7 @@ body.drawer .sb{box-shadow:0 8px 32px rgba(16,24,40,.10)}
  --pad-card:var(--s5);--gap-card:var(--s5);--gap-title:var(--s4);--row-h:56px;--cell-x:var(--s2);--cell-edge:var(--s3);
  --gap-legend:var(--s2);--gap-cap:var(--s3);--bar-h:20px;--bar-gap:var(--s3)}
 @media(max-width:640px){:root{--pad-card:var(--s4);--gap-card:var(--s4);--cell-x:var(--s1);--cell-edge:var(--s2)}}
-.card,.dg,.ect{padding:var(--pad-card)}
+.card,.dg{padding:var(--pad-card)}
 .grid,main.grid,.shell>main{gap:var(--gap-card)}
 .grid>.grid{margin:0}
 h2{margin:0 0 var(--gap-title)}
@@ -586,3 +558,62 @@ table.tsy th.on button{color:var(--blue)}table.tsy th .ar{font-size:9px;min-widt
 /* footer breathing room */
 .shell>main{padding-bottom:48px!important}.sb{padding-bottom:var(--s6)!important}
 @media(max-width:640px){.shell>main{padding-bottom:40px!important}}
+
+/* Nov 9 2026: Portfolio + Earnings merged. Trending headlines, earnings in holdings table + detail */
+.hgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s5) var(--s6)}
+.hb{min-width:0;border-top:1px solid var(--grey);padding-top:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+.hbh{display:flex;align-items:center;gap:var(--s2);min-width:0}.hbh .hbt{font-weight:700;color:var(--ink);text-decoration:none}.hbh .hbt:hover{color:var(--blue)}
+.hbh .hbn{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}.hbh .chg{margin-left:auto;font-size:var(--t-sm);font-weight:600}
+.hl{display:flex;flex-direction:column;gap:2px;color:var(--ink);text-decoration:none}.hl .h{font-size:var(--t-sm);font-weight:600;line-height:1.4}.hl:hover .h{color:var(--blue)}
+#wl td.er .ech{white-space:nowrap}#wl td.er{text-align:right}#wl td.nx{white-space:nowrap}
+.ekg.e3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.eth .lgh{gap:var(--s2)}.eth .cap{font-weight:400}#s-earnd .ekg{border-top:0;padding-top:var(--s2)}
+.ech2{margin-top:var(--s5)}.ech2 .chart svg{width:100%;height:auto;display:block}.esrc{margin-top:var(--s3)}
+@media(max-width:1100px){.hgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.hgrid{grid-template-columns:1fr}.ekg.e3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Nov 9 2026 b: roomier Trending headlines (3 columns, more spacing, larger headline text) */
+#s-heads .hgrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s6) var(--s7);margin-top:var(--s3)}
+#s-heads .hb{padding-top:var(--s5);gap:var(--s4)}
+#s-heads .hbh{margin-bottom:var(--s1)}
+#s-heads .hl{gap:var(--s1)}#s-heads .hl .h{font-size:var(--t-body);line-height:1.45}
+#s-heads .hl+.hl{padding-top:var(--s4);border-top:1px dashed var(--grey)}
+@media(max-width:1100px){#s-heads .hgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){#s-heads .hgrid{grid-template-columns:1fr;gap:var(--s5)}}
+
+/* Nov 9 2026 c: report-calendar tiles restored from the old Earnings page, now on Portfolio */
+.ecal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--s3)}
+.ect{text-align:left;background:var(--surf);border:1px solid var(--grey);border-radius:12px;padding:var(--s3);cursor:pointer;font-family:inherit;color:var(--ink);transition:border-color .15s,box-shadow .15s}
+.ect:hover{border-color:var(--blue)}.ect.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+.ett{display:flex;align-items:center;gap:var(--s1);flex-wrap:wrap}.ett b{font-size:var(--t-body);margin-right:auto}
+.ect .cap{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ewn{font-size:var(--t-sm);font-weight:600;margin-top:var(--s1);color:var(--blue)}
+@media(max-width:1100px){.ecal{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:640px){.ecal{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.ewn{display:flex;align-items:center;gap:var(--s1)}.ewn.rp{color:var(--ink)}
+.ect{padding:var(--s3) var(--s4);border-radius:10px}
+.ecal{gap:var(--s3)}
+.ecal{gap:var(--s4)}
+.ect{padding:var(--s5) var(--s5);min-height:120px;display:flex;flex-direction:column;gap:var(--s2);border-radius:12px;border:1px solid var(--grey)}
+.ect.on{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue)}
+.ett{display:flex;align-items:center;justify-content:space-between;gap:var(--s3)}
+.ewn{margin-top:auto;display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.ewn .ech{margin:0}
+@media(max-width:640px){.ect{padding:var(--s4);min-height:108px}}
+.ett{flex-direction:row!important;flex-wrap:nowrap}
+.ett b{font-size:var(--t-body)}
+.ecal{grid-auto-rows:1fr}
+.ett{justify-content:space-between!important;min-height:22px}.ett b{line-height:22px}
+.ect .ett{flex-wrap:wrap!important;row-gap:var(--s2)}
+.ect{min-width:0;overflow:hidden}.ect .ett{min-width:0;max-width:100%}
+.ect{border-color:var(--edge);box-shadow:var(--elev)}
+.ect:hover{border-color:var(--blue)}.ect.on{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),var(--elev)}
+.ect{padding:var(--pad-card)}
+.ewx{font-size:var(--t-xs);color:var(--mute);font-weight:500}
+
+/* Nov 9 2026 d: uniform 4-across rows for Report calendar and Trending headlines (2 tablet, 1-2 mobile) */
+#s-ecal .ecal{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:var(--s4)}
+#s-ecal .ect{height:100%}
+#s-heads .hgrid{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:var(--s6) var(--s6)}
+#s-heads .hb{height:100%}
+@media(max-width:1100px){#s-ecal .ecal,#s-heads .hgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){#s-heads .hgrid{grid-template-columns:1fr;grid-auto-rows:auto;gap:var(--s5)}#s-ecal .ecal{grid-template-columns:repeat(2,minmax(0,1fr))}}
