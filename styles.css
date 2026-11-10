@@ -742,13 +742,15 @@ body[data-page="news"] #s-cal #macro p{margin:var(--s3) 0 0!important;font-size:
  #s-earnd table.ektbl tbody td:first-child,#s-earnd table.ektbl thead th:first-child,#s-earnd table.ektbl tbody th{padding-left:10px}
  #s-earnd table.ektbl tbody td:last-child,#s-earnd table.ektbl thead th:last-child{padding-right:10px}}
 
-/* Nov 10 2026 c: footer is a slim brand row + two equal cards (disclaimer | Daily digest) */
-footer.sf,footer.card.sf{margin:0;padding:0;background:transparent;border:0;box-shadow:none;border-radius:0}
+/* Nov 10 2026 d: universal footer — two equal cards; crest + blue rule live inside the disclaimer card */
+footer.sf,footer.card.sf{margin:0;padding:0 0 var(--s7);background:transparent;border:0;box-shadow:none;border-radius:0}
 footer.sf:hover,footer.card.sf:hover{border-color:transparent}
-.sf .sfr{margin:0;padding:var(--s2) 2px var(--s3)}
 .sfgrid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s5);align-items:stretch;margin:0;padding:0;border:0}
-.sf .sfd{margin:0;padding:var(--pad-card);border:1px solid var(--line);height:100%;display:flex;flex-direction:column;justify-content:center}
-.sf .sfd h4{margin:0 0 var(--s2)}
+.sf .sfd{margin:0;padding:var(--pad-card);border:1px solid var(--line);height:100%;display:flex;flex-direction:column;justify-content:flex-start}
+.sf .sfd .sfr{margin:0;padding:0 0 var(--s4);align-items:center;gap:var(--s2) var(--s4)}
+.sf .sfd .sfc{margin-left:auto;text-align:right;font-size:var(--t-xs);line-height:1.4}
+.sf .sfd-b{margin:0;padding-top:var(--s4);border-top:1px solid var(--blue)}
+.sf .sfd h4{margin:0 0 var(--s1)}
 .sf .sfd p{margin:0;font-size:var(--t-xs);line-height:1.6;opacity:.75}
 .sfs{min-width:0;height:100%;display:flex;flex-direction:column;justify-content:center;gap:var(--s3);padding:var(--pad-card)}
 .sfs-h{display:flex;align-items:flex-start;gap:var(--s3)}
@@ -758,7 +760,7 @@ footer.sf:hover,footer.card.sf:hover{border-color:transparent}
 .sfs .dg-g{height:44px}
 .sfs .dg-g input,.sfs .dg-g button{height:36px}
 .sfs .msg{margin-top:4px;font-size:var(--t-xs);opacity:.7}
-@media(max-width:640px){.sfgrid{grid-template-columns:1fr;gap:var(--s4)}.sf .sfd,.sfs{height:auto;justify-content:flex-start}}
+@media(max-width:640px){.sfgrid{grid-template-columns:1fr;gap:var(--s4)}.sf .sfd,.sfs{height:auto}.sfs{justify-content:flex-start}.sf .sfd .sfr{flex-direction:column;align-items:flex-start}.sf .sfd .sfc{margin-left:0;text-align:left}}
 
 /* Nov 10 2026 c: Report calendar + News calendar share the same ect card system */
 #s-ecal .ecal,#s-cal .ecal{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:1fr;gap:var(--s4)}
