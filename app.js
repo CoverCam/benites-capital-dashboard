@@ -32,7 +32,7 @@ function eepsChart(hs,W=EW(),H=210){if(!hs.length)return'<div class="empty">No E
   if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="5" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/>`;
   if(i==hs.length-1&&z.eps!=null)g+=`<text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+20:sy(Math.max(z.eps,z.est??z.eps))-10}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="legend"><span class="lgi"><i style="background:var(--blue)"></i>Beat</span> <span class="lgi"><i style="background:var(--ink)"></i>Miss</span> <span class="lgi"><i class="o"></i>Estimate</span></div>`}
-function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${lg(t,"s")}Latest earnings: ${t}</span><span class="cap r">${c}</span></h2>`;if(!x)return hd("")+`<div class="empty">${(D.tick[t]||{}).fund?"Fund or ETF, no quarterly earnings reports.":"No earnings data."}</div>`;
+function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${lg(t,"s")}Latest earnings: ${t}</span>${c?`<span class="cap r">${c}</span>`:""}</h2>`;if(!x)return hd("")+`<div class="empty">${(D.tick[t]||{}).fund?"Fund or ETF, no quarterly earnings reports.":"No earnings data."}</div>`;
  const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{};const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=(v,c)=>{const a=Math.abs(v),m=v==null?"n/a":!c?MONEY(v):a>=1e12?"$"+fmt(v/1e12,2)+"T":a>=1e9?"$"+fmt(v/1e9,1)+"B":"$"+fmt(v/1e6,0)+"M";return cs&&m!="n/a"?m.replace("$",cs):m};
  const srcQ=q&&src.revenue!=null&&src.period&&src.period.slice(0,7)==q.period.slice(0,7);/* latest quarter: use the sourced release figures so actual, estimate and year-ago share one basis */
  const rev=srcQ?src.revenue:q&&q.revenue;
@@ -40,10 +40,16 @@ function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${l
  const rest=src.revenue_est,rs=rev&&rest?(rev/rest-1)*100:null;
  const kpi=(k,v,sub,c)=>`<div class="ek"><div class="k">${k}</div><div class="v">${v}${c?" "+c:""}</div><div class="cap">${sub||"&nbsp;"}</div></div>`;
  const hs=x.history.filter(z=>z.eps!=null);
- const n=eNext(t);return`${hd(`${q?ql(q.period).replace(" '"," 20"):""}${h?" · reported "+md(h.date)+(h.time?" "+h.time:""):""}${n?" · next "+md(n.date):""}`)}
- <div class="ekg e3">${kpi("Revenue",rev!=null?money(rev):"n/a",rest?`vs ${money(rest)} est. ${fp(rs,1)}`:"Estimate n/a",rest&&rev?echip(rs):"")}
- ${kpi(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):"n/a",h&&h.est!=null&&h.eps!=null?`vs $${fmt(h.est)} est. ${fp(h.surprise,1)}`:h&&h.pending?"Reported, figures pending":"Estimate n/a",h&&h.est!=null&&h.eps!=null?echip(h.surprise):"")}
- ${kpi("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a")}</div>
+ const n=eNext(t);
+ const dash="—";
+ const erow=(metric,actual,est,surp,chip)=>`<tr><th scope="row">${metric}</th><td class="num">${actual}</td><td class="num">${est||dash}</td><td class="num">${surp||dash}</td><td>${chip||dash}</td></tr>`;
+ const meta=[q?`<span class="em">${ql(q.period).replace(" '"," 20")}</span>`:"",h?`<span class="em">Reported ${md(h.date)}${h.time?" · "+h.time:""}</span>`:"",n?`<span class="em">Next ${md(n.date)}${n.time?" · "+n.time:""}</span>`:""].join("");
+ return`${hd("")}
+ <div class="emeta">${meta}</div>
+ <div class="etblw"><table class="ektbl"><thead><tr><th>Metric</th><th>Actual</th><th>Estimate</th><th>Surprise</th><th>Result</th></tr></thead><tbody>
+ ${erow("Revenue",rev!=null?money(rev):"n/a",rest?money(rest):"",rest&&rev?fp(rs,1):"",rest&&rev?echip(rs):"")}
+ ${erow(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):(h&&h.pending?"Pending":"n/a"),h&&h.est!=null?"$"+fmt(h.est):"",h&&h.est!=null&&h.eps!=null?fp(h.surprise,1):"",h&&h.est!=null&&h.eps!=null?echip(h.surprise):"")}
+ ${erow("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a","","")}</tbody></table></div>
  ${x.takeaway||x.guidance?`<div class="enotes">${x.takeaway?`<div><div class="k">Takeaway</div><p>${esc(x.takeaway)} ${x.takeaway_url?`<a href="${esc(x.takeaway_url)}" target="_blank" rel="noopener">${esc(x.takeaway_source||"Source")}</a>`:""}</p></div>`:""}${x.guidance?`<div><div class="k">Guidance</div><p>${esc(x.guidance)}</p></div>`:""}</div>`:""}
  <div class="e2 ech2"><div><div class="k2">Revenue by quarter</div><div class="chart">${ebars(qs.map(z=>z.revenue),qs.map(z=>ql(z.period)),money)}</div></div><div><div class="k2">EPS vs estimate</div><div class="chart">${eepsChart(hs)}</div></div></div>
  <div class="cap esrc">Via Yahoo Finance${src.url?`; latest quarter from <a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.source)}</a>${src.revenue_est_source?"; estimate "+esc(src.revenue_est_source):""}`:""}.</div>`}
@@ -151,8 +157,29 @@ if(has("#cal"))$("#cal tbody").innerHTML=EARN.length?EARN.map(c=>`<tr${nx(c)}><t
 const TRX=/\s*\((\d{1,2}(?::\d{2})?\s?[AP]\.?M\.?(?:\s?ET)?)\)/i;
 const calT=c=>{if(c.time)return{time:c.time,title:c.title};const m=String(c.title||"").match(TRX);if(!m)return{time:c.kind=="Earnings"?"Time TBC":"",title:c.title};
  const multi=/;/.test(c.title);return{time:m[1].replace(/\s?ET$/i,"")+" ET",title:multi?c.title:c.title.replace(TRX,"")}};
-if(has("#calall"))$("#calall tbody").innerHTML=D.cal.length?D.cal.slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.kind=="Earnings")-(b.kind=="Earnings")).map(c=>{const x=calT(c);return calRow(Object.assign({},c,{time:x.time||" ",title:x.title,_nx:c===NEXTEV}))}).join(""):'<tr><td class="empty">Nothing scheduled in the next 14 days.</td></tr>';
-if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p style="margin:${has("#macrocal")||has("#calall")?16:0}px 0 0"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
+const MCIC='<span class="lg s mc" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/></svg></span>';
+const moneyB=s=>String(s||"").replace(/\(\$([\d.]+)\s*billion\)/ig,(_,n)=>"$"+(+n%1?n:Math.round(+n))+"B").replace(/\$([\d.]+)\s*billion/ig,(_,n)=>"$"+(+n%1?n:Math.round(+n))+"B");
+function calParts(c){
+  const x=calT(c),time=(x.time||"").trim(),when=wd(c.date)+(time&&time!=" "?" · "+time:"");
+  if(c.t)return{icon:lg(c.t,"s"),title:c.t,sub:(D.tick[c.t]||{}).name||"",when,detail:c.eps!=null?"EPS est. $"+fmt(c.eps): (c.note||""),href:"portfolio.html#"+c.t,ext:false};
+  const bits=String(x.title||c.title||"").split(/\s*;\s*/).map(s=>s.replace(TRX,"").trim()).filter(Boolean);
+  let main=bits[0]||"Event",extra=bits.slice(1);
+  const p=main.match(/^(.*?)\s*\(([^)]+)\)\s*$/);if(p){main=p[1].trim();extra=[p[2],...extra]}
+  if(/^(\d+)-year (bond )?auction$/i.test(main))main=main.replace(/-year (bond )?auction/i,"-yr auction");
+  let det=moneyB(extra.join(" · "));if(det)det=det.charAt(0).toUpperCase()+det.slice(1);
+  return{icon:MCIC,title:main,sub:"",when,detail:det||c.note||"",href:c.url||"",ext:!!(c.url&&/^https?:/.test(c.url))};
+}
+if(has("#calall")){
+  const ev=D.cal.slice().sort((a,b)=>a.date.localeCompare(b.date)||(a.kind=="Earnings")-(b.kind=="Earnings"));
+  $("#calall").innerHTML=ev.length?ev.map(c=>{
+    const isN=c===NEXTEV,x=calParts(c),kind=(c.kind||"Macro")==="Earnings"?"Earnings":"Macro";
+    const pill=isN?'<span class="ech b">Next up</span>':`<span class="ech st">${kind}</span>`;
+    const href=x.href?` href="${esc(x.href)}"${x.ext?' target="_blank" rel="noopener"':""}`:"";
+    const tag=x.href?"a":"div";
+    return`<${tag} class="ect${isN?" nxt":""}"${href}><div class="ett"><span class="lgn">${x.icon}<b>${esc(x.title)}</b></span><span class="ect-res">${pill}</span></div><div class="cap">${x.sub?esc(x.sub):"&nbsp;"}</div><div class="ewn num rp">${esc(x.when)}</div><div class="ewn num ewx"><span>${x.detail?esc(x.detail):"&nbsp;"}</span></div></${tag}>`;
+  }).join(""):'<div class="empty">Nothing scheduled in the next 14 days.</div>';
+}
+if(D.macro_note&&has("#macro"))$("#macro").innerHTML=`<p class="mnote"><b>Macro:</b> ${esc(D.macro_note)}</p>${D.macro_source?`<div class="cap"><a href="${esc(D.macro_source.url)}" target="_blank" rel="noopener">${esc(D.macro_source.source)}</a></div>`:""}`;
 /* comparison */
 let cRange="3M";const on=new Set(["SPY","WL"]);const HOLD=D.tickers.filter(t=>t!="SPY"&&D.hist[t]);let wlNote="";const keys=["WL",...D.tickers.filter(t=>D.hist[t])];const col=k=>k=="WL"?NAVY:k=="SPY"?INK:INK;const DASH=["","6 4","2 3","8 3 2 3"];const dsh=k=>k=="WL"||k=="SPY"?"":DASH[D.tickers.indexOf(k)%4];
 function cmp(){const sh=D.hist.SPY,i0=since(sh,cRange),dates=sh.slice(i0).map(z=>z[0]);
@@ -262,8 +289,11 @@ if(has("#ecal")&&D.earn){const TS=D.tickers.filter(t=>ER[t]),run=D.run||D.lastba
  const recent=t=>{const h=lastH(t);return h&&dd(h.date,run)<=45&&dd(h.date,run)>=-1};
  const order=[...TS.filter(recent).sort((a,b)=>lastH(b).date.localeCompare(lastH(a).date)),...TS.filter(t=>!recent(t)&&eNext(t)).sort((a,b)=>eNext(a).date.localeCompare(eNext(b).date)),...TS.filter(t=>!recent(t)&&!eNext(t))];
  window.BC_ecal=()=>{$("#ecal").innerHTML=order.map(t=>{const r=recent(t),h=lastH(t),n=eNext(t);
-  const rep=r?`${md(h.date)}${h.time?" · "+h.time:""}${h.pending?' <span class="cap">results pending</span>':(h.eps!=null&&h.est!=null?echip(h.surprise):' <span class="cap">no estimate</span>')}`:"";
-  return`<button class="ect${t==sel?" on":""}" data-t="${t}" aria-pressed="${t==sel}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span>${r?'<span class="ech r">Reported</span>':""}</div><div class="cap">${esc((D.tick[t]||{}).name||t)}</div>${r?`<div class="ewn num rp">${rep}</div>`:""}<div class="ewn num${r?" ewx":""}">${n?(r?"Next ":"")+md(n.date)+(n.time?" · "+n.time:""):"Date not set"}</div></button>`}).join("");
+  const result=r&&!h.pending&&h.eps!=null&&h.est!=null?echip(h.surprise):"";
+  const status=r?'<span class="ech st">Reported</span>':(n?'<span class="ech st">Upcoming</span>':"");
+  const last=r?`${md(h.date)}${h.time?" · "+h.time:""}${h.pending?' <span class="cap">results pending</span>':""}`:"";
+  const next=n?(r?"Next ":"Next ")+md(n.date)+(n.time?" · "+n.time:""):"Date not set";
+  return`<button class="ect${t==sel?" on":""}" data-t="${t}" aria-pressed="${t==sel}"><div class="ett"><span class="lgn">${lg(t,"s")}<b>${t}</b></span><span class="ect-res">${result}</span></div><div class="cap">${esc((D.tick[t]||{}).name||t)}</div><div class="ewn num rp">${last||"&nbsp;"}</div><div class="ewn num ewx"><span>${next}</span>${status}</div></button>`}).join("");
   $("#ecal").querySelectorAll(".ect").forEach(b=>b.onclick=()=>{select(b.dataset.t);history.replaceState(null,"","#"+b.dataset.t);$("#s-earnd").style.display!="none"&&$("#s-earnd").scrollIntoView({behavior:"smooth",block:"start"})})};
  BC_ecal()}
 /* trending headlines per holding (top of Portfolio), from today's digest */
