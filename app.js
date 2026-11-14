@@ -224,6 +224,13 @@ document.querySelectorAll("form[data-sub]").forEach(f=>f.onsubmit=e=>{e.preventD
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){m.textContent="Enter a valid email address.";f.email.focus();return}
  m.textContent="Joining...";const body=new URLSearchParams();body.append(SUB_FIELD,em);
  fetch(SUB_ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/x-www-form-urlencoded"},body}).then(()=>{m.textContent="You're on the list. The next digest lands in your inbox.";f.email.value=""}).catch(()=>m.textContent="Something went wrong. Try again.")});
+
+/* sector heatmap (Markets): 11 S&P sector SPDRs, day change, built in data.js */
+(function(){if(!has("#sect"))return;const S=D.sectors||{},items=(S.items||[]).slice().sort((a,b)=>(b.chg??-Infinity)-(a.chg??-Infinity));
+ const max=Math.max(1.5,...items.map(x=>Math.abs(x.chg||0)));
+ $("#sect").innerHTML=items.length?items.map(x=>{const p=Math.min(1,Math.abs(x.chg)/max),dir=x.chg>=0?"g":"l",pct=(x.chg>=0?"+":"")+fmt(x.chg,2)+"%";
+  return`<div class="stx ${dir}" style="--p:${p.toFixed(3)}"><div class="stx-n">${esc(x.name)}</div><div class="stx-t">${esc(x.t)}</div><div class="stx-v num">${pct}</div></div>`}).join(""):'<div class="empty">Sector data unavailable.</div>';
+ if(has("#sectasof")){const bits=[S.asof,S.source?"Data via "+S.source+".":""].filter(Boolean);$("#sectasof").textContent=bits.join(S.asof&&!String(S.asof).endsWith(".")?". ":" ")}})();
 /* snapshot chart panel (index): History = our data, Live = TradingView */
 let snSym=null,snLive=true,snRange="3M";
 function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML="";document.querySelectorAll(".sct").forEach(b=>b.classList.remove("on"));return}
@@ -239,9 +246,8 @@ function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML=
  $("#snx").onclick=()=>{snSym=null;renderSnap()};if(snLive)tvEmbed($("#sntv"),TV[snSym])}
 if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
 document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
-/* old anchors on news.html */
-if(has("#s-cal")&&["#s-earn","#s-macro","#s-up","#s-feed","#s-big"].includes(location.hash))setTimeout(()=>$(location.hash=="#s-feed"||location.hash=="#s-big"?"#s-top":"#s-cal").scrollIntoView(),50);
-if(has("#s-cal")&&["#s-stock","#s-lead"].includes(location.hash))location.replace("portfolio.html#s-heads");
+/* old News & Events / calendar anchors: those sections were dropped Nov 14 2026; send people to Trending on Portfolio */
+if(has("#wl")&&["#s-cal","#s-earn","#s-macro","#s-up","#s-feed","#s-big","#s-stock","#s-lead"].includes(location.hash))location.replace("index.html#s-heads");
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
 if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 var(--s4)">${lg(t,"s")}<a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
@@ -314,11 +320,10 @@ if(has("#heads")){/* Nov 9 2026: Stock news and Leaders on the record moved here
   items.map((el,i)=>[el,sz[i]]).slice(n).sort((a,b)=>b[1]-a[1]).forEach(([el,h])=>{const k=hts.indexOf(Math.min(...hts));cols[k].appendChild(el);hts[k]+=h+24});lastN=n};
  H.innerHTML=boxes;H.querySelectorAll(".hqt").forEach(q=>{const tg=()=>{const o=q.classList.toggle("open");q.setAttribute("aria-expanded",o);pack()};q.onclick=tg;q.onkeydown=e=>{if(e.key=="Enter"||e.key==" "){e.preventDefault();tg()}}});H.querySelectorAll("details").forEach(d=>d.addEventListener("toggle",pack));pack();let rzh;addEventListener("resize",()=>{clearTimeout(rzh);rzh=setTimeout(pack,150)});
  $("#heads").querySelectorAll(".hbt").forEach(a=>a.onclick=e=>{e.preventDefault();select(a.dataset.t,true);if(innerWidth>=1100)$("#s-port").scrollIntoView({behavior:"smooth",block:"start"})})}
-/* old homepage deep links (index.html#NVDA was Portfolio until Nov 9 2026) -> portfolio.html#NVDA */
-if(document.body.dataset.page=="news"){const tk=()=>{if(D.tickers.includes(decodeURIComponent(location.hash.slice(1)).toUpperCase()))location.replace("portfolio.html"+location.hash.toUpperCase())};tk();addEventListener("hashchange",tk)}
+/* index.html is Portfolio again (Nov 14 2026); ticker hashes are handled below. Keep portfolio.html#NVDA working too. */
 /* old overview anchors moved to markets.html */
 if(has("#wl")&&["#s-snap","#ustc","#hist","#usttiles","#s-sub"].includes(location.hash)&&location.hash!="#s-sub")location.replace("markets.html"+location.hash);
-/* ticker deep link: portfolio.html#NVDA */
+/* ticker deep link: index.html#NVDA or portfolio.html#NVDA */
 if(has("#wl")){const hk=decodeURIComponent(location.hash.slice(1)).toUpperCase();const dl=D.tickers.includes(hk);renderWL();if(dl)select(hk);if(dl)setTimeout(()=>$("#detail").scrollIntoView({block:"start"}),50)}
 if(has("#cmp"))cmp();let rz;addEventListener("resize",()=>{clearTimeout(rz);rz=setTimeout(()=>{if(has("#detail")&&sel&&!dLive)renderDetail();if(has("#cmp"))cmp();if(has("#usthist")&&$("#usthist").style.display!="none")renderUST()},150)});
 

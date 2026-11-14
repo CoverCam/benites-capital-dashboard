@@ -668,53 +668,30 @@ footer.card.sf{margin:0;padding:var(--pad-card)}
 @media(max-width:640px){.dhero{aspect-ratio:auto;min-height:0}.dhero img{position:relative;inset:auto;display:block;height:auto;aspect-ratio:16/9}
  .dhero figcaption{position:static;background:#1C1F24;padding:var(--s4)}.dh-d{-webkit-line-clamp:4}}
 
-/* Nov 10 2026: News & Events front (newsroom layout) */
-body[data-page="news"] .front{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.9fr);gap:var(--s5);align-items:stretch}
-body[data-page="news"] #s-lead:empty{display:none}
-body[data-page="news"] .front-hi:has(#s-lead:empty){grid-template-columns:1fr}
-body[data-page="news"] .ph{margin-bottom:var(--s3)}
-/* Lead feature: full-width photo on top, copy below; card height matches Top line */
-body[data-page="news"] .dhero{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;min-height:0;height:100%;margin:0;padding:0;gap:0;background:var(--surf);color:var(--ink);border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative}
-body[data-page="news"] .dhero.card:hover{border-color:var(--navy)}
-body[data-page="news"] .dh-media{position:relative;flex:1 1 auto;min-height:160px;width:100%}
-body[data-page="news"] .dhero img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 20%;border-radius:0;background:var(--grey)}
-body[data-page="news"] .dhero figcaption{position:static;inset:auto;flex:0 0 auto;padding:var(--s4) var(--pad-card) var(--pad-card);background:none;color:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;gap:var(--s2);min-width:0}
-body[data-page="news"] .dh-eb{font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:1}
-body[data-page="news"] .dhero .dh-t{color:var(--ink);font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.2;max-width:none;letter-spacing:-.015em}
-body[data-page="news"] .dhero .dh-t:hover{color:var(--blue);text-decoration:none}
-body[data-page="news"] .dh-d{font-size:var(--t-sm);line-height:1.45;color:var(--ink);opacity:.78;max-width:none;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-body[data-page="news"] .dh-m,body[data-page="news"] .dh-m a{font-size:var(--t-xs);font-weight:600;color:var(--blue);opacity:1}
-/* Credit is a single-line pill on the photo; do not position the inner link (that stacked "J..." over "Photo:") */
-body[data-page="news"] .dhero .dh-c{position:absolute;top:auto;right:auto;bottom:8px;left:8px;z-index:1;max-width:calc(100% - 16px);padding:2px 8px;border-radius:999px;background:rgba(10,14,22,.55);font-size:10px;line-height:1.5;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body[data-page="news"] .dhero .dh-c a{position:static;display:inline;padding:0;max-width:none;background:none;border-radius:0;color:inherit;font-size:inherit;line-height:inherit;white-space:nowrap}
-body[data-page="news"] .dhero.noimg{height:auto;padding:var(--pad-card)}
-body[data-page="news"] .dhero.noimg .dh-media{display:none}
-body[data-page="news"] .dhero.noimg figcaption{padding:0}
-body[data-page="news"] .dhero.noimg .dh-d{-webkit-line-clamp:6}
-/* Top line: dense scannable column, same height as the lead */
-body[data-page="news"] #s-top{min-width:0;height:100%;display:flex;flex-direction:column}
-body[data-page="news"] #s-top h2{margin-bottom:var(--s3)}
-body[data-page="news"] #s-top .bul{gap:var(--s2);font-size:var(--t-sm);line-height:1.35}
-body[data-page="news"] #s-top .tlw{font-size:var(--t-xs);line-height:1.35;margin-top:1px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-body[data-page="news"] #s-top #sums{padding-top:var(--s3)}
-/* Calendar is full width now that signup lives in the footer */
-body[data-page="news"] #s-cal h2{margin-bottom:var(--s3)}
-body[data-page="news"] #s-cal table.cal td{padding:var(--s2) var(--s3);vertical-align:top}
-body[data-page="news"] #s-cal table.cal tbody:before{content:none;display:none;height:0}
-body[data-page="news"] #s-cal table.cal tbody tr{cursor:default}
-body[data-page="news"] #s-cal table.cal tbody tr:hover td{background:transparent}
-body[data-page="news"] #s-cal #macro p{margin:var(--s3) 0 0!important;font-size:var(--t-sm);line-height:1.45}
-@media(max-width:1100px){body[data-page="news"] .front{grid-template-columns:1fr}
- body[data-page="news"] .dhero{height:auto}
- body[data-page="news"] .dh-media{flex:0 0 auto;min-height:0;height:200px}
- body[data-page="news"] #s-top{height:auto}}
-@media(max-width:640px){body[data-page="news"] .dhero{height:auto}
- body[data-page="news"] .dh-media{height:auto;aspect-ratio:16/9}
- body[data-page="news"] .dhero img{position:absolute;inset:0;height:100%;max-height:none}
- body[data-page="news"] .dhero figcaption{padding:var(--s4)}
- body[data-page="news"] .dh-d{-webkit-line-clamp:4}
- body[data-page="news"] .dhero .dh-t{font-size:20px}
- body[data-page="news"] #s-top .bul{font-size:var(--t-body)}}
+/* Nov 14 2026: Today's lead on Portfolio — full-width white card, photo on top, headline and summary below */
+body[data-page="index"] #s-lead:empty{display:none}
+body[data-page="index"] .dhero{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;min-height:0;height:auto;margin:0;padding:0;gap:0;background:var(--surf);color:var(--ink);border:1px solid var(--edge);border-radius:12px;overflow:hidden;position:relative;box-shadow:var(--elev)}
+body[data-page="index"] .dhero.card:hover{border-color:var(--navy)}
+body[data-page="index"] .dh-media{position:relative;flex:0 0 auto;width:100%;aspect-ratio:2.2/1;min-height:180px;background:var(--grey)}
+body[data-page="index"] .dhero img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 20%;border-radius:0;background:var(--grey)}
+body[data-page="index"] .dhero figcaption{position:static;inset:auto;flex:0 0 auto;padding:var(--s4) var(--pad-card) var(--pad-card);background:none;color:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;gap:var(--s2);min-width:0}
+body[data-page="index"] .dh-eb{font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:1}
+body[data-page="index"] .dhero .dh-t{color:var(--ink);font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.2;max-width:none;letter-spacing:-.015em;text-decoration:none}
+body[data-page="index"] .dhero .dh-t:hover{color:var(--blue);text-decoration:none}
+body[data-page="index"] .dh-d{font-size:var(--t-sm);line-height:1.45;color:var(--ink);opacity:.78;max-width:none;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+body[data-page="index"] .dh-m,body[data-page="index"] .dh-m a{font-size:var(--t-xs);font-weight:600;color:var(--blue);opacity:1;text-decoration:none}
+body[data-page="index"] .dh-m a:hover{text-decoration:underline}
+body[data-page="index"] .dhero .dh-c{position:absolute;top:auto;right:auto;bottom:8px;left:8px;z-index:1;max-width:calc(100% - 16px);padding:2px 8px;border-radius:999px;background:rgba(10,14,22,.55);font-size:10px;line-height:1.5;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-page="index"] .dhero .dh-c a{position:static;display:inline;padding:0;max-width:none;background:none;border-radius:0;color:inherit;font-size:inherit;line-height:inherit;white-space:nowrap}
+body[data-page="index"] .dhero.noimg{height:auto;padding:var(--pad-card)}
+body[data-page="index"] .dhero.noimg .dh-media{display:none}
+body[data-page="index"] .dhero.noimg figcaption{padding:0}
+body[data-page="index"] .dhero.noimg .dh-d{-webkit-line-clamp:6}
+@media(max-width:1100px){body[data-page="index"] .dh-media{aspect-ratio:2/1}}
+@media(max-width:640px){body[data-page="index"] .dh-media{aspect-ratio:16/9;min-height:0}
+ body[data-page="index"] .dhero figcaption{padding:var(--s4)}
+ body[data-page="index"] .dh-d{-webkit-line-clamp:4}
+ body[data-page="index"] .dhero .dh-t{font-size:20px}}
 
 /* Nov 10 2026: Portfolio Latest earnings — structured table, not floating KPIs */
 #s-earnd .eth{margin-bottom:var(--s3)}
@@ -786,3 +763,18 @@ footer.sf:hover,footer.card.sf:hover{border-color:transparent}
 @media(max-width:640px){#s-ecal .ecal{grid-template-columns:repeat(2,minmax(0,1fr))}
  #s-cal .ecal{display:flex;overflow-x:auto;gap:var(--s3);padding-bottom:var(--s2);-webkit-overflow-scrolling:touch;scrollbar-width:thin}
  #s-cal .ect{flex:0 0 248px;width:248px;min-width:248px;height:auto}}
+
+/* Nov 14 2026: Sector heatmap on Markets (11 SPDR sector ETFs) */
+#s-sect .sect{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--s4);margin-top:var(--s1)}
+#s-sect h2{margin-bottom:var(--s4)}
+#s-sect #sectasof{margin-top:var(--s3)}
+.stx{min-width:0;min-height:108px;display:flex;flex-direction:column;gap:2px;padding:var(--s4) var(--pad-card);border:1px solid var(--edge);border-radius:12px;box-shadow:var(--elev);background:var(--surf)}
+.stx-n{font-size:var(--t-sm);font-weight:600;line-height:1.3;color:var(--ink)}
+.stx-t{font-size:var(--t-xs);font-weight:600;letter-spacing:.04em;color:var(--ink);opacity:.55}
+.stx-v{margin-top:auto;padding-top:var(--s3);font-size:clamp(20px,2vw,26px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1.1;color:var(--ink)}
+.stx.g{background:rgba(22,163,74,calc(.06 + var(--p,0)*.30));border-color:rgba(22,163,74,calc(.10 + var(--p,0)*.28))}
+.stx.l{background:rgba(185,28,28,calc(.05 + var(--p,0)*.28));border-color:rgba(185,28,28,calc(.10 + var(--p,0)*.26))}
+.stx.g .stx-v{color:#166534}
+.stx.l .stx-v{color:#9F1239}
+@media(max-width:1100px){#s-sect .sect{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:640px){#s-sect .sect{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3)}.stx{min-height:96px;padding:var(--s3) var(--s4)}.stx-v{font-size:20px}}
