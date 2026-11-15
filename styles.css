@@ -792,3 +792,8 @@ footer.sf:hover,footer.card.sf:hover{border-color:transparent}
 #wl tbody tr.secr:hover td{background:var(--grey);box-shadow:none}
 #wl tbody tr.secr .secn{font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy,var(--ink));border-left:3px solid var(--blue);padding-left:8px;margin-right:var(--s3)}
 #wl tbody tr.secr .secc{margin-right:4px}#wl tbody tr.secr .secv{font-size:var(--t-xs);font-weight:700}
+
+/* sidebar lockup: Perpetua Bold shield + outlined wordmark underneath (preview Nov 14 2026) */
+.sb>.logo.lockup{flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:var(--s2) 0 var(--s1);margin-bottom:var(--s2)}
+.sb>.logo.lockup .bm{width:auto;height:80px}
+.sb>.logo.lockup .wmk{display:block;width:100%;max-width:196px;height:auto}
