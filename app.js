@@ -111,7 +111,7 @@ const SECTOR={AXP:"Financials",JPM:"Financials",RJF:"Financials",PS:"Financials"
 let bySec=false;
 const COLS=[["t","Ticker"],["price","Close"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"],["tpe","P/E"]];
 const HIDEM=new Set(["m1","ytd"]);
-let sortK="d1",sortD=-1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,perf(t)]));
+let sortK="t",sortD=1,sel=null;const P=Object.fromEntries(D.tickers.map(t=>[t,perf(t)]));
 function peCalc(t,p){const x=D.tick[t]||{},q=P[t];if(!q)return;q.tpe=x.teps>0&&p?p/x.teps:(x.tpe>0&&x.teps==null?x.tpe:null);q.fpe=x.feps>0&&p?p/x.feps:(x.pe>0&&x.feps==null?x.pe:null);for(const k of["tpe","fpe"])if(!(q[k]>0)||q[k]>999)q[k]=null}
 D.tickers.forEach(t=>peCalc(t,P[t].price));
 const peF=v=>v==null?'<span class="na">n/a</span>':fmt(v,1);
