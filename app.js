@@ -269,7 +269,7 @@ function renderSnap(){const pn=$("#snp");if(!snSym){pn.hidden=true;pn.innerHTML=
 if(has("#snp"))document.querySelectorAll(".sct").forEach(b=>b.onclick=()=>{if(snSym==b.dataset.sym){snSym=null}else{snSym=b.dataset.sym;snLive=!!TV[snSym]}renderSnap();if(snSym)$("#snp").scrollIntoView({behavior:"smooth",block:"nearest"})});
 document.querySelectorAll(".asof2").forEach(e=>e.innerHTML=asofNote());
 /* old News & Events / calendar anchors: those sections were dropped Nov 14 2026; send people to Trending on Portfolio */
-if(has("#wl")&&["#s-cal","#s-earn","#s-macro","#s-up","#s-feed","#s-big","#s-stock","#s-lead"].includes(location.hash))location.replace("index.html#s-heads");
+if(has("#wl")&&["#s-cal","#s-earn","#s-macro","#s-up","#s-feed","#s-big","#s-stock"].includes(location.hash))location.replace("index.html#s-heads");
 /* news page */
 const item=i=>`<div class="it"><div class="h">${esc(i.headline)}</div>${i.summary?`<div class="b">${esc(i.summary)}</div>`:""}<div class="m"><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.source)}</a></div></div>`;
 if(has("#stock"))$("#stock").innerHTML=D.tickers.filter(t=>(D.news[t]||[]).length).map(t=>`<div class="sn"><div class="sub2 lgh" style="margin:0 0 var(--s4)">${lg(t,"s")}<a href="portfolio.html#${t}">${t}</a> <span class="cap" style="font-weight:400">${esc(D.tick[t]?.name||"")}</span></div><div class="items">${D.news[t].map(item).join("")}</div></div>`).join("")||'<div class="empty">No stock news today.</div>';
@@ -384,3 +384,32 @@ tvWidget($("#tape"),"ticker-tape",{symbols:LIVE.map(t=>({proName:TV[t],title:t})
   const pb=p.getBoundingClientRect(),pad=parseFloat(getComputedStyle(p).paddingBottom),tb=t.getBoundingClientRect(),after=[...p.children].filter(e=>e.getBoundingClientRect().top>=tb.bottom-1).reduce((a,e)=>a+e.getBoundingClientRect().height+parseFloat(getComputedStyle(e).marginTop),0);
   const free=pb.bottom-pad-after-tb.bottom;if(free<=1)return;const h=Math.floor((rows.length*52+free)/rows.length*10)/10;t.style.setProperty("--row-h",Math.max(52,h)+"px")}
  const go=()=>requestAnimationFrame(fill);new ResizeObserver(go).observe($("#detail")||t);new MutationObserver(go).observe(t.tBodies[0],{childList:true});addEventListener("resize",go);setTimeout(fill,100)})();
+
+/* Portfolio weekly headline carousel (Nov 15 2026): arrows, dots, swipe, 7s auto-advance paused on hover and when reduced-motion is on. ?slide=2 or #slide-2 selects a slide for previews. */
+(function(){const root=document.querySelector(".dcarousel");if(!root)return;
+ const track=root.querySelector(".dcarousel-track"),slides=[...root.querySelectorAll(".dcarousel-slide")],n=slides.length;
+ if(!track||n<2)return;
+ const dots=[...root.querySelectorAll(".dcarousel-dot")],prev=root.querySelector(".dcarousel-btn.prev"),next=root.querySelector(".dcarousel-btn.next");
+ const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+ let i=0,timer=null,hovering=false,startX=0,dx=0,dragging=false;
+ const q=parseInt(new URLSearchParams(location.search).get("slide")||"",10);
+ const pinned=q>=1&&q<=n;if(pinned)i=q-1;
+ const h=location.hash.match(/^#slide-(\d+)$/);if(h){const k=+h[1];if(k>=1&&k<=n){i=k-1}}
+ function go(k,animate){i=((k%n)+n)%n;track.style.transition=(!animate||reduce)?"none":"";track.style.transform="translateX("+(-i*100)+"%)";
+  slides.forEach((s,j)=>s.setAttribute("aria-hidden",j!==i));dots.forEach((d,j)=>{d.classList.toggle("on",j===i);d.setAttribute("aria-current",j===i?"true":"false")});}
+ function stop(){if(timer){clearInterval(timer);timer=null}}
+ function start(){stop();if(reduce||n<2||hovering||document.hidden||pinned||h)return;timer=setInterval(()=>go(i+1,true),7000)}
+ go(i,false);start();
+ root.addEventListener("mouseenter",()=>{hovering=true;stop()});
+ root.addEventListener("mouseleave",()=>{hovering=false;start()});
+ root.addEventListener("focusin",()=>{hovering=true;stop()});
+ root.addEventListener("focusout",()=>{if(!root.contains(document.activeElement)){hovering=false;start()}});
+ document.addEventListener("visibilitychange",()=>{document.hidden?stop():start()});
+ if(prev)prev.onclick=()=>{go(i-1,true);stop();start()};
+ if(next)next.onclick=()=>{go(i+1,true);stop();start()};
+ dots.forEach((d,j)=>d.onclick=()=>{go(j,true);stop();start()});
+ const vp=root.querySelector(".dcarousel-viewport")||root;
+ vp.addEventListener("touchstart",e=>{startX=e.changedTouches[0].clientX;dx=0;dragging=true;stop()},{passive:true});
+ vp.addEventListener("touchmove",e=>{if(!dragging)return;dx=e.changedTouches[0].clientX-startX},{passive:true});
+ vp.addEventListener("touchend",()=>{if(!dragging)return;dragging=false;if(Math.abs(dx)>40)go(i+(dx<0?1:-1),true);start()});
+})();

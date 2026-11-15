@@ -668,30 +668,30 @@ footer.card.sf{margin:0;padding:var(--pad-card)}
 @media(max-width:640px){.dhero{aspect-ratio:auto;min-height:0}.dhero img{position:relative;inset:auto;display:block;height:auto;aspect-ratio:16/9}
  .dhero figcaption{position:static;background:#1C1F24;padding:var(--s4)}.dh-d{-webkit-line-clamp:4}}
 
-/* Nov 14 2026: Today's lead on Portfolio — full-width white card, photo on top, headline and summary below */
-body[data-page="index"] #s-lead:empty{display:none}
-body[data-page="index"] .dhero{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;min-height:0;height:auto;margin:0;padding:0;gap:0;background:var(--surf);color:var(--ink);border:1px solid var(--edge);border-radius:12px;overflow:hidden;position:relative;box-shadow:var(--elev)}
-body[data-page="index"] .dhero.card:hover{border-color:var(--navy)}
-body[data-page="index"] .dh-media{position:relative;flex:0 0 auto;width:100%;aspect-ratio:2.2/1;min-height:180px;background:var(--grey)}
-body[data-page="index"] .dhero img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 20%;border-radius:0;background:var(--grey)}
-body[data-page="index"] .dhero figcaption{position:static;inset:auto;flex:0 0 auto;padding:var(--s4) var(--pad-card) var(--pad-card);background:none;color:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;gap:var(--s2);min-width:0}
-body[data-page="index"] .dh-eb{font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:1}
-body[data-page="index"] .dhero .dh-t{color:var(--ink);font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.2;max-width:none;letter-spacing:-.015em;text-decoration:none}
-body[data-page="index"] .dhero .dh-t:hover{color:var(--blue);text-decoration:none}
-body[data-page="index"] .dh-d{font-size:var(--t-sm);line-height:1.45;color:var(--ink);opacity:.78;max-width:none;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-body[data-page="index"] .dh-m,body[data-page="index"] .dh-m a{font-size:var(--t-xs);font-weight:600;color:var(--blue);opacity:1;text-decoration:none}
-body[data-page="index"] .dh-m a:hover{text-decoration:underline}
-body[data-page="index"] .dhero .dh-c{position:absolute;top:auto;right:auto;bottom:8px;left:8px;z-index:1;max-width:calc(100% - 16px);padding:2px 8px;border-radius:999px;background:rgba(10,14,22,.55);font-size:10px;line-height:1.5;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body[data-page="index"] .dhero .dh-c a{position:static;display:inline;padding:0;max-width:none;background:none;border-radius:0;color:inherit;font-size:inherit;line-height:inherit;white-space:nowrap}
-body[data-page="index"] .dhero.noimg{height:auto;padding:var(--pad-card)}
-body[data-page="index"] .dhero.noimg .dh-media{display:none}
-body[data-page="index"] .dhero.noimg figcaption{padding:0}
-body[data-page="index"] .dhero.noimg .dh-d{-webkit-line-clamp:6}
-@media(max-width:1100px){body[data-page="index"] .dh-media{aspect-ratio:2/1}}
-@media(max-width:640px){body[data-page="index"] .dh-media{aspect-ratio:16/9;min-height:0}
- body[data-page="index"] .dhero figcaption{padding:var(--s4)}
- body[data-page="index"] .dh-d{-webkit-line-clamp:4}
- body[data-page="index"] .dhero .dh-t{font-size:20px}}
+/* Nov 14 2026: Today's lead on Portfolio — full-width white card, photo on top, headline and summary below. Nov 15 2026: same card on Markets. */
+body:is([data-page="index"],[data-page="markets"]) #s-lead:empty{display:none}
+body:is([data-page="index"],[data-page="markets"]) .dhero{display:flex;flex-direction:column;align-items:stretch;aspect-ratio:auto;min-height:0;height:auto;margin:0;padding:0;gap:0;background:var(--surf);color:var(--ink);border:1px solid var(--edge);border-radius:12px;overflow:hidden;position:relative;box-shadow:var(--elev)}
+body:is([data-page="index"],[data-page="markets"]) .dhero.card:hover{border-color:var(--navy)}
+body:is([data-page="index"],[data-page="markets"]) .dh-media{position:relative;flex:0 0 auto;width:100%;aspect-ratio:2.2/1;min-height:180px;background:var(--grey)}
+body:is([data-page="index"],[data-page="markets"]) .dhero img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 20%;border-radius:0;background:var(--grey)}
+body:is([data-page="index"],[data-page="markets"]) .dhero figcaption{position:static;inset:auto;flex:0 0 auto;padding:var(--s4) var(--pad-card) var(--pad-card);background:none;color:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;gap:var(--s2);min-width:0}
+body:is([data-page="index"],[data-page="markets"]) .dh-eb{font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:1}
+body:is([data-page="index"],[data-page="markets"]) .dhero .dh-t{color:var(--ink);font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.2;max-width:none;letter-spacing:-.015em;text-decoration:none}
+body:is([data-page="index"],[data-page="markets"]) .dhero .dh-t:hover{color:var(--blue);text-decoration:none}
+body:is([data-page="index"],[data-page="markets"]) .dh-d{font-size:var(--t-sm);line-height:1.45;color:var(--ink);opacity:.78;max-width:none;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+body:is([data-page="index"],[data-page="markets"]) .dh-m,body:is([data-page="index"],[data-page="markets"]) .dh-m a{font-size:var(--t-xs);font-weight:600;color:var(--blue);opacity:1;text-decoration:none}
+body:is([data-page="index"],[data-page="markets"]) .dh-m a:hover{text-decoration:underline}
+body:is([data-page="index"],[data-page="markets"]) .dhero .dh-c{position:absolute;top:auto;right:auto;bottom:8px;left:8px;z-index:1;max-width:calc(100% - 16px);padding:2px 8px;border-radius:999px;background:rgba(10,14,22,.55);font-size:10px;line-height:1.5;color:rgba(255,255,255,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body:is([data-page="index"],[data-page="markets"]) .dhero .dh-c a{position:static;display:inline;padding:0;max-width:none;background:none;border-radius:0;color:inherit;font-size:inherit;line-height:inherit;white-space:nowrap}
+body:is([data-page="index"],[data-page="markets"]) .dhero.noimg{height:auto;padding:var(--pad-card)}
+body:is([data-page="index"],[data-page="markets"]) .dhero.noimg .dh-media{display:none}
+body:is([data-page="index"],[data-page="markets"]) .dhero.noimg figcaption{padding:0}
+body:is([data-page="index"],[data-page="markets"]) .dhero.noimg .dh-d{-webkit-line-clamp:6}
+@media(max-width:1100px){body:is([data-page="index"],[data-page="markets"]) .dh-media{aspect-ratio:2/1}}
+@media(max-width:640px){body:is([data-page="index"],[data-page="markets"]) .dh-media{aspect-ratio:16/9;min-height:0}
+ body:is([data-page="index"],[data-page="markets"]) .dhero figcaption{padding:var(--s4)}
+ body:is([data-page="index"],[data-page="markets"]) .dh-d{-webkit-line-clamp:4}
+ body:is([data-page="index"],[data-page="markets"]) .dhero .dh-t{font-size:20px}}
 
 /* Nov 10 2026: Portfolio Latest earnings — structured table, not floating KPIs */
 #s-earnd .eth{margin-bottom:var(--s3)}
@@ -797,3 +797,24 @@ footer.sf:hover,footer.card.sf:hover{border-color:transparent}
 .sb>.logo.lockup{flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:var(--s2) 0 var(--s1);margin-bottom:var(--s2)}
 .sb>.logo.lockup .bm{width:auto;height:80px}
 .sb>.logo.lockup .wmk{display:block;width:100%;max-width:196px;height:auto}
+
+/* Nov 15 2026: Portfolio weekly headline carousel. Same hero look; arrows on the photo, dots under the caption. */
+body:is([data-page="index"]) .dcarousel.card{position:relative;margin:0;padding:0;overflow:hidden;background:var(--surf);color:var(--ink);border:1px solid var(--edge);border-radius:12px;box-shadow:var(--elev)}
+body:is([data-page="index"]) .dcarousel.card:hover{border-color:var(--navy)}
+body:is([data-page="index"]) .dcarousel .dhero{border:0;box-shadow:none;border-radius:0;margin:0;height:auto}
+body:is([data-page="index"]) .dcarousel .dhero.card:hover{border-color:transparent}
+.dcarousel-viewport{position:relative;overflow:hidden;container-type:inline-size}
+.dcarousel-track{display:flex;align-items:stretch;transition:transform .4s ease}
+.dcarousel-slide{flex:0 0 100%;min-width:100%;max-width:100%}
+.dcarousel-btn{position:absolute;top:calc(100cqw / 2.2 / 2);left:8px;z-index:2;width:36px;height:36px;margin:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.86);color:var(--ink);box-shadow:0 1px 3px rgba(16,24,40,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;transform:translateY(-50%)}
+.dcarousel-btn.next{left:auto;right:8px}
+.dcarousel-btn svg{width:18px;height:18px;display:block}
+.dcarousel-btn:hover{background:#fff;color:var(--blue)}
+.dcarousel-btn:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.dcarousel-dots{display:flex;align-items:center;justify-content:center;gap:8px;padding:0 0 var(--s4)}
+.dcarousel-dot{width:8px;height:8px;padding:0;border:0;border-radius:50%;background:var(--edge);cursor:pointer}
+.dcarousel-dot.on,.dcarousel-dot[aria-current="true"]{background:var(--blue)}
+.dcarousel-dot:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.dcarousel-track{transition:none}}
+@media(max-width:1100px){.dcarousel-btn{top:calc(100cqw / 2 / 2)}}
+@media(max-width:640px){.dcarousel-btn{top:calc(100cqw * 9 / 16 / 2);width:32px;height:32px;left:6px}.dcarousel-btn.next{right:6px;left:auto}.dcarousel-dots{padding-bottom:var(--s3)}}
