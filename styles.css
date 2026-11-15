@@ -778,3 +778,17 @@ footer.sf:hover,footer.card.sf:hover{border-color:transparent}
 .stx.l .stx-v{color:#9F1239}
 @media(max-width:1100px){#s-sect .sect{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:640px){#s-sect .sect{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3)}.stx{min-height:96px;padding:var(--s3) var(--s4)}.stx-v{font-size:20px}}
+
+/* ETF fund profile + heatmap held marker (preview Nov 14 2026) */
+#s-earnd table.ftbl tbody td{width:40%}
+.fh{display:flex;align-items:center;gap:var(--s2);min-width:0}.fh>.cap:first-child{min-width:16px}.fhn{font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fw{display:flex;align-items:center;justify-content:flex-end;gap:var(--s2)}.fwb{flex:1;max-width:160px;height:6px;border-radius:3px;background:var(--grey);overflow:hidden}.fwb i{display:block;height:100%;background:var(--blue);border-radius:3px}
+.stx-h{margin-left:6px;font-size:var(--t-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 6px;border-radius:999px;background:var(--ink);color:#fff;opacity:1}
+@media(max-width:640px){.fhn{display:none}.fwb{max-width:80px}}
+
+/* holdings: sector grouping toggle (preview Nov 14 2026) */
+#s-port h2 #closeasof .seg{font-size:var(--t-sm)}
+#wl tbody tr.secr td{background:var(--grey);border-bottom:1px solid var(--line);padding:8px 14px;height:auto;cursor:default;text-align:left;white-space:nowrap}
+#wl tbody tr.secr:hover td{background:var(--grey);box-shadow:none}
+#wl tbody tr.secr .secn{font-size:var(--t-xs);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy,var(--ink));border-left:3px solid var(--blue);padding-left:8px;margin-right:var(--s3)}
+#wl tbody tr.secr .secc{margin-right:4px}#wl tbody tr.secr .secv{font-size:var(--t-xs);font-weight:700}
