@@ -15,7 +15,18 @@ const ER=D.earn||{};
 const MONEY=v=>v==null?"n/a":Math.abs(v)>=1e12?"$"+fmt(v/1e12,2)+"T":(Math.abs(v)>=1e9?"$"+fmt(v/1e9,2)+"B":"$"+fmt(v/1e6,0)+"M");
 const lastH=t=>ER[t]&&ER[t].history.length?ER[t].history.at(-1):null;
 const echip=s=>s==null?"":`<span class="ech ${s>=0?"b":"m"}">${s>=0?"Beat":"Miss"}</span>`;
-const ql=d=>{const m=+d.slice(5,7);return"Q"+Math.ceil(m/3)+" '"+d.slice(2,4)};
+/* Quarter labels follow the company's fiscal year when an override (e.g. "Q3 FY2027") or fy_end_month says it is not a calendar year. Calendar companies keep Q3 '26 on charts and Q3 2026 on the badge. */
+const parseQL=s=>{const m=String(s||"").match(/Q([1-4])\s*(FY)?\s*(20)?(\d{2})/i);return m?{q:+m[1],fy:!!m[2],year:2000+(+m[4])}:null};
+const fmtQL=(q,y,fy,wide)=>fy?`Q${q} FY${String(y).slice(2)}`:wide?`Q${q} ${y}`:`Q${q} '${String(y).slice(2)}`;
+const fyEndMo=(lab,period)=>{if(!lab||!lab.fy||!period)return 12;return(+period.slice(5,7)+3*(4-lab.q)-1)%12+1};
+function qInfo(period,fyMo){const y=+period.slice(0,4),m=+period.slice(5,7),start=fyMo%12+1,into=((m-start)%12+12)%12;return{q:Math.floor(into/3)+1,year:m<=fyMo?y:y+1}}
+function earnFY(x){const src=x.latest_src||{},lab=parseQL(src.label);let fyMo=12,fiscal=false;if(lab&&lab.fy&&src.period){fyMo=fyEndMo(lab,src.period);fiscal=true}else if(lab&&!lab.fy){fyMo=12;fiscal=false}else if(x.fy_end_month){fyMo=x.fy_end_month;fiscal=fyMo!==12}return{fyMo,fiscal,periods:(x.quarters||[]).map(z=>z.period).filter(Boolean)}}
+const qlPeriod=(period,fy,wide=false)=>{if(!period)return"";const i=qInfo(period,fy.fyMo);return fmtQL(i.q,i.year,fy.fiscal,wide)};
+function typDay(m,periods){const days=periods.map(p=>+p.slice(5,7)===m?+p.slice(8,10):0).filter(Boolean),all=periods.map(p=>+p.slice(8,10));return Math.min(...(days.length?days:all.length?all:[28]))}
+function lastDay(y,m){return new Date(y,m,0).getDate()}
+function isoDate(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function qlReport(date,fy){if(!date)return"";const before=(fy.periods||[]).filter(p=>p<=date).sort();if(before.length){const p=before.at(-1),days=(new Date(date+"T12:00:00")-new Date(p+"T12:00:00"))/864e5;if(days>=0&&days<=100)return qlPeriod(p,fy)}const rd=new Date(date+"T12:00:00"),months=[0,1,2,3].map(k=>((fy.fyMo-3*k-1)%12+12)%12+1);let best=null;for(let y=rd.getFullYear()-1;y<=rd.getFullYear()+1;y++){for(const m of months){const day=Math.min(typDay(m,fy.periods||[]),lastDay(y,m)),dt=new Date(y,m-1,day,12);if(dt<=rd&&(!best||dt>best))best=dt}}return best?qlPeriod(isoDate(best),fy):""}
+const ql=d=>qlPeriod(d,{fyMo:12,fiscal:false});
 const eSurp=t=>{const h=lastH(t);return h&&h.eps!=null&&h.est!=null?h.surprise:null};
 function eNext(t){const x=ER[t];if(x&&x.next)return x.next;const e=(D.tick[t]||{}).earnings;return e?{date:e.date,time:"",est:e.eps}:null}
 const EW=()=>innerWidth<640?Math.max(300,Math.min(420,innerWidth-80)):520;
@@ -26,14 +37,16 @@ function ebars(vals,labels,yf,W=EW(),H=210){const P={l:4,r:4,t:22,b:26},n=vals.l
   if(v==null)return;const y0=sy(0),y1=sy(v);g+=`<rect x="${x}" y="${Math.min(y0,y1)}" width="${w}" height="${Math.max(1,Math.abs(y1-y0))}" rx="3" style="fill:${v<0?"var(--ink)":"var(--blue)"}"/>`;
   g+=`<text x="${x+w/2}" y="${v<0?y1+14:y1-6}" font-size="${i==n-1?12:11}" font-weight="${i==n-1?700:500}" text-anchor="middle" style="fill:var(--ink)${i==n-1?"":";opacity:.8"}">${yf(v,innerWidth<640)}</text>`});
  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`}
-function eepsChart(hs,W=EW(),H=210){if(!hs.length)return'<div class="empty">No EPS history.</div>';const P={l:6,r:6,t:18,b:26},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
- let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${ql(new Date(new Date(z.date).getTime()-50*864e5).toISOString().slice(0,10))}</text>`;
+function eepsChart(hs,labels,W=EW(),H=210){if(!hs.length)return'<div class="empty">No EPS history.</div>';const P={l:6,r:6,t:18,b:26},all=hs.flatMap(z=>[z.eps,z.est]).filter(v=>v!=null),mx=Math.max(...all),mn=Math.min(...all),pad=(mx-mn)*.15||1,sy=v=>P.t+(mx+pad-v)/((mx-mn+2*pad))*(H-P.t-P.b),bw=(W-P.l-P.r)/hs.length;
+ let g="";hs.forEach((z,i)=>{const cx=P.l+bw*(i+.5);g+=`<text x="${cx}" y="${H-8}" font-size="11" text-anchor="middle" style="fill:var(--mute)">${labels[i]||z.label||""}</text>`;
   if(z.est!=null)g+=`<circle cx="${cx}" cy="${sy(z.est)}" r="5" fill="none" style="stroke:var(--ink)" stroke-width="1.5"/>`;
   if(z.eps!=null)g+=`<circle cx="${cx}" cy="${sy(z.eps)}" r="5" style="fill:${z.surprise!=null&&z.surprise<0?"var(--ink)":"var(--blue)"}"/>`;
   if(i==hs.length-1&&z.eps!=null)g+=`<text x="${cx}" y="${z.est!=null&&z.eps<z.est?sy(z.eps)+20:sy(Math.max(z.eps,z.est??z.eps))-10}" font-size="11" font-weight="600" text-anchor="middle" style="fill:var(--ink)">$${fmt(z.eps)}</text>`});
  return`<svg viewBox="0 0 ${W} ${H}" role="img">${g}</svg><div class="legend"><span class="lgi"><i style="background:var(--blue)"></i>Beat</span> <span class="lgi"><i style="background:var(--ink)"></i>Miss</span> <span class="lgi"><i class="o"></i>Estimate</span></div>`}
 function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${lg(t,"s")}Latest earnings: ${t}</span>${c?`<span class="cap r">${c}</span>`:""}</h2>`;if(!x)return hd("")+`<div class="empty">${(D.tick[t]||{}).fund?"Fund or ETF, no quarterly earnings reports.":"No earnings data."}</div>`;
- const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{};const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=(v,c)=>{const a=Math.abs(v),m=v==null?"n/a":!c?MONEY(v):a>=1e12?"$"+fmt(v/1e12,2)+"T":a>=1e9?"$"+fmt(v/1e9,1)+"B":"$"+fmt(v/1e6,0)+"M";return cs&&m!="n/a"?m.replace("$",cs):m};
+ const qs=x.quarters.filter(z=>z.revenue!=null||z.eps!=null),q=qs.at(-1),h=lastH(t),src=x.latest_src||{},fy=earnFY(x);const cs=x.cur?({TWD:"NT$"}[x.cur]||x.cur+" "):"",money=(v,c)=>{const a=Math.abs(v),m=v==null?"n/a":!c?MONEY(v):a>=1e12?"$"+fmt(v/1e12,2)+"T":a>=1e9?"$"+fmt(v/1e9,1)+"B":"$"+fmt(v/1e6,0)+"M";return cs&&m!="n/a"?m.replace("$",cs):m};
+ const qLab=z=>z&&(z.label||qlPeriod(z.period,fy));
+ const srcLab=parseQL(src.label),badgeLab=q&&srcLab&&src.period&&src.period.slice(0,7)==q.period.slice(0,7)?fmtQL(srcLab.q,srcLab.year,srcLab.fy,!srcLab.fy):(q?qlPeriod(q.period,fy,!fy.fiscal):"");
  const srcQ=q&&src.revenue!=null&&src.period&&src.period.slice(0,7)==q.period.slice(0,7);/* latest quarter: use the sourced release figures so actual, estimate and year-ago share one basis */
  const rev=srcQ?src.revenue:q&&q.revenue;
  const yo=q&&qs.find(z=>z.period.slice(0,4)==String(+q.period.slice(0,4)-1)&&z.period.slice(5,7)==q.period.slice(5,7)),prev=srcQ&&src.revenue_prior_year?src.revenue_prior_year:(yo?yo.revenue:src.revenue_prior_year),yoy=rev&&prev?(rev/prev-1)*100:null;
@@ -43,7 +56,7 @@ function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${l
  const n=eNext(t);
  const dash="—";
  const erow=(metric,actual,est,surp,chip)=>`<tr><th scope="row">${metric}</th><td class="num">${actual}</td><td class="num">${est||dash}</td><td class="num">${surp||dash}</td><td>${chip||dash}</td></tr>`;
- const meta=[q?`<span class="em">${ql(q.period).replace(" '"," 20")}</span>`:"",h?`<span class="em">Reported ${md(h.date)}${h.time?" · "+h.time:""}</span>`:"",n?`<span class="em">Next ${md(n.date)}${n.time?" · "+n.time:""}</span>`:""].join("");
+ const meta=[badgeLab?`<span class="em">${badgeLab}</span>`:"",h?`<span class="em">Reported ${md(h.date)}${h.time?" · "+h.time:""}</span>`:"",n?`<span class="em">Next ${md(n.date)}${n.time?" · "+n.time:""}</span>`:""].join("");
  return`${hd("")}
  <div class="emeta">${meta}</div>
  <div class="etblw"><table class="ektbl"><thead><tr><th>Metric</th><th>Actual</th><th>Estimate</th><th>Surprise</th><th>Result</th></tr></thead><tbody>
@@ -51,7 +64,7 @@ function earnBlock(t){const x=ER[t],hd=c=>`<h2 class="eth"><span class="lgh">${l
  ${erow(h&&h.basis?"EPS ("+esc(h.basis)+")":"EPS",h&&h.eps!=null?"$"+fmt(h.eps):(h&&h.pending?"Pending":"n/a"),h&&h.est!=null?"$"+fmt(h.est):"",h&&h.est!=null&&h.eps!=null?fp(h.surprise,1):"",h&&h.est!=null&&h.eps!=null?echip(h.surprise):"")}
  ${erow("Revenue YoY",yoy==null?"n/a":fp(yoy,1),yo||prev?"vs year ago":"Prior year n/a","","")}</tbody></table></div>
  ${x.takeaway||x.guidance?`<div class="enotes">${x.takeaway?`<div><div class="k">Takeaway</div><p>${esc(x.takeaway)} ${x.takeaway_url?`<a href="${esc(x.takeaway_url)}" target="_blank" rel="noopener">${esc(x.takeaway_source||"Source")}</a>`:""}</p></div>`:""}${x.guidance?`<div><div class="k">Guidance</div><p>${esc(x.guidance)}</p></div>`:""}</div>`:""}
- <div class="e2 ech2"><div><div class="k2">Revenue by quarter</div><div class="chart">${ebars(qs.map(z=>z.revenue),qs.map(z=>ql(z.period)),money)}</div></div><div><div class="k2">EPS vs estimate</div><div class="chart">${eepsChart(hs)}</div></div></div>
+ <div class="e2 ech2"><div><div class="k2">Revenue by quarter</div><div class="chart">${ebars(qs.map(z=>z.revenue),qs.map(z=>qLab(z)),money)}</div></div><div><div class="k2">EPS vs estimate</div><div class="chart">${eepsChart(hs,hs.map(z=>z.label||qlReport(z.date,fy)))}</div></div></div>
  <div class="cap esrc">Via Yahoo Finance${src.url?`; latest quarter from <a href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.source)}</a>${src.revenue_est_source?"; estimate "+esc(src.revenue_est_source):""}`:""}.</div>`}
 /* ETF fund profile (preview Nov 14 2026): sector ETFs have no earnings, so #s-earnd shows costs, yield and top 10 holdings instead */
 const ETF=D.etf||{};
