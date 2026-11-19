@@ -117,9 +117,9 @@ if(has("#asof"))$("#asof").textContent="Closes as of "+md(D.lastbar)+" · update
 if(has("#snap"))$("#snap").innerHTML=D.snap.filter(s=>s.sym!=="^TNX").map(s=>{const h=D.hist[s.sym];if(!h)return"";const n=h.length,v=h[n-1][1],ch=s.sym==="^TNX"?(v-h[n-2][1])*100:pc(v,h[n-2][1]);
  const cs=s.sym==="^TNX"?`<span class="chg ${ch>=0?"up":"dn"} num">${ch>=0?"+":""}${ch.toFixed(0)} bp</span>`:`<span class="chg num">${fp(ch)}</span>`;
  return`<button class="sc sct" data-sym="${esc(s.sym)}" aria-controls="snp" title="Open chart"><div class="n">${esc(s.name)}<span class="lv">Chart ›</span></div><div class="v num">${s.pre}${fmt(v,s.dec)}${s.suf}</div><div class="row">${cs}${spark(h)}</div></button>`}).join("");
-const SHORTN={JPM:"JPMorgan",PSUS:"Pershing Sq USA",SPY:"S&P 500",PS:"Pershing Square",XLP:"Consumer Staples",XLE:"Energy",XLF:"Financials"};
+const SHORTN={JPM:"JPMorgan",SPY:"S&P 500",PS:"Pershing Square",XLP:"Consumer Staples",XLE:"Energy",XLF:"Financials"};
 /* sector grouping toggle (preview Nov 14 2026): GICS sectors, matching the SPDR sector names on Markets; ETFs use their fund's sector */
-const SECTOR={AXP:"Financials",JPM:"Financials",RJF:"Financials",PS:"Financials",PSUS:"Financials",XLF:"Financials",MSFT:"Technology",NVDA:"Technology",TSM:"Technology",
+const SECTOR={AXP:"Financials",JPM:"Financials",RJF:"Financials",PS:"Financials",XLF:"Financials",MSFT:"Technology",NVDA:"Technology",TSM:"Technology",
  LMT:"Industrials",UBER:"Industrials",MRNA:"Health Care",HHH:"Real Estate",XLE:"Energy",XLP:"Consumer Staples",SPY:"Broad market",FNMA:"Financials",FMCC:"Financials",INTC:"Technology"};
 let bySec=false;
 const COLS=[["t","Ticker"],["price","Close"],["d1","Day"],["d5","5 day"],["m1","1 month"],["ytd","YTD"],["tpe","P/E"]];
@@ -242,7 +242,7 @@ function renderUST(){const h=UST.y10;if(!h){$("#usthist").innerHTML='<div class=
  const W=Math.max(300,($("#ustc").clientWidth||800)-48);
  $("#uchart").innerHTML=axisChart([{pts,color:NAVY,w:2,label:1}],{W,H:innerWidth<640?220:300,dates:seg.map(z=>z[0]),yf:v=>fmt(v,2)+"%",area:1,tip:(i,S)=>{const d=i>0?bp(S[0].pts[i],S[0].pts[i-1]):null;return`<div class="tv num">${fmt(S[0].pts[i],3)}%</div>${d!=null?`<div class="num">${fbp(d)} vs prior day</div>`:""}`}})}
 /* TradingView official free Advanced Chart widget (attribution kept as shipped). Lazy: only called when a Live tab opens. */
-const TV={AXP:"NYSE:AXP",HHH:"NYSE:HHH",INTC:"NASDAQ:INTC",JPM:"NYSE:JPM",LMT:"NYSE:LMT",MRNA:"NASDAQ:MRNA",MSFT:"NASDAQ:MSFT",NVDA:"NASDAQ:NVDA",PS:"NYSE:PS",PSUS:"NYSE:PSUS",RJF:"NYSE:RJF",SPY:"AMEX:SPY",TSM:"NYSE:TSM",UBER:"NYSE:UBER",FNMA:"OTC:FNMA",FMCC:"OTC:FMCC",XLP:"AMEX:XLP",XLE:"AMEX:XLE",XLF:"AMEX:XLF",
+const TV={AXP:"NYSE:AXP",HHH:"NYSE:HHH",INTC:"NASDAQ:INTC",JPM:"NYSE:JPM",LMT:"NYSE:LMT",MRNA:"NASDAQ:MRNA",MSFT:"NASDAQ:MSFT",NVDA:"NASDAQ:NVDA",PS:"NYSE:PS",RJF:"NYSE:RJF",SPY:"AMEX:SPY",TSM:"NYSE:TSM",UBER:"NYSE:UBER",FNMA:"OTC:FNMA",FMCC:"OTC:FMCC",XLP:"AMEX:XLP",XLE:"AMEX:XLE",XLF:"AMEX:XLF",
  "BZ=F":"TVC:UKOIL","GC=F":"TVC:GOLD","^VIX":"CAPITALCOM:VIX","DX-Y.NYB":"CAPITALCOM:DXY","^TNX":"US10Y"};
 const TVNOTE={"^VIX":"Live is a VIX CFD; may differ from History.","DX-Y.NYB":"Live is a dollar index CFD; may differ from History.","BZ=F":"Live is a Brent CFD; History is the front-month future.","GC=F":"Live is spot gold; History is the front-month future."};
 function tvEmbed(w,symbol,o={}){if(!w)return;w.innerHTML='<div class="tradingview-widget-container" style="height:100%;width:100%"><div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div><div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank"><span class="blue-text">Track all markets on TradingView</span></a></div></div>';
