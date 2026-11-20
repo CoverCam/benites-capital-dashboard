@@ -677,6 +677,7 @@ body:is([data-page="index"],[data-page="markets"]) .dhero img{position:absolute;
 /* Logo and other centered library images: keep the mark in the middle at 2.2:1 / 2:1 / 16:9, without changing other slides (Nov 19 2026). */
 body:is([data-page="index"],[data-page="markets"]) .dh-media.dh-pos-center{background:#FAF9F5}
 body:is([data-page="index"],[data-page="markets"]) .dh-media.dh-pos-center img{object-position:center;background:#FAF9F5}
+body:is([data-page="index"],[data-page="markets"]) .dh-media.dh-pos-bottom img{object-position:center bottom}
 body:is([data-page="index"],[data-page="markets"]) .dhero figcaption{position:static;inset:auto;flex:0 0 auto;padding:var(--s4) var(--pad-card) var(--pad-card);background:none;color:var(--ink);display:flex;flex-direction:column;justify-content:flex-start;gap:var(--s2);min-width:0}
 body:is([data-page="index"],[data-page="markets"]) .dh-eb{font-size:var(--t-2xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--blue);opacity:1}
 body:is([data-page="index"],[data-page="markets"]) .dhero .dh-t{color:var(--ink);font-size:clamp(20px,2vw,26px);font-weight:700;line-height:1.2;max-width:none;letter-spacing:-.015em;text-decoration:none}
